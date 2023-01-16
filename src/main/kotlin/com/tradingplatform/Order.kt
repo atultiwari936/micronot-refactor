@@ -1,6 +1,6 @@
 package com.tradingplatform
 
-class Order constructor(val type : String, val qty: Int, val price : Int) {
+data class Order constructor(val type : String, val qty: Int, val price : Int) {
     var status = "unfilled"
     var filled = ArrayList<Pair<Int,Int>>()
     val id = BuyOrders.size + SellOrders.size + CompletedOrders.size
