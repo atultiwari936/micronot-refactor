@@ -1,0 +1,119 @@
+<html>
+<head>
+    <style>
+        html{
+            font-weight : 400;
+            font-size : large;
+            background-color:#fdad54;
+            font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+        }
+        .input__text{
+            border : 3px solid black;
+            border-radius : 6px;
+            height : 200px;
+            width : 800px;
+            padding:5px;
+            margin:5px;
+        }
+
+        .output__result__style{
+            border : 3px solid black;
+            border-radius : 6px;
+            height : 150px;
+            width : 300px;
+            background-color:white;
+            padding:5px;
+            margin:5px;
+        }
+
+        .button-40 {
+          background-color: #111827;
+          border: 1px solid transparent;
+          border-radius: .75rem;
+          box-sizing: border-box;
+          color: #FFFFFF;
+          cursor: pointer;
+          flex: 0 0 auto;
+          font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+          font-size: 1.125rem;
+          font-weight: 400;
+          line-height: 0.5rem;
+          text-align: center;
+          text-decoration: none #6B7280 solid;
+          text-decoration-thickness: auto;
+          transition-duration: .2s;
+          transition-property: background-color,border-color,color,fill,stroke;
+          transition-timing-function: cubic-bezier(.4, 0, 0.2, 1);
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: manipulation;
+          width: fit-content;
+          margin:5px;
+          paddign:5px;
+        }
+
+        .button-40:hover {
+          background-color: #374151;
+        }
+
+        .button-40:focus {
+          box-shadow: none;
+          outline: 2px solid transparent;
+          outline-offset: 2px;
+        }
+
+        @media (min-width: 768px) {
+          .button-40 {
+            padding: .75rem 1.5rem;
+          }
+        }
+
+    </style>
+</head>
+<body>
+   <form id="form" method="post">
+       <textarea type="text" class="input__text" id="body" placeholder="Text" size="100"></textarea></br><br>
+       <input type="submit" class="button__submit button-40" value="Submit"/>
+    </form> 
+    <div>
+    <div class="output__result" id="result">
+    </div>
+    </div>
+</body>
+<script>
+var form=document.getElementById('form')
+
+form.addEventListener('submit', function(e){
+ e.preventDefault()
+ document.getElementById("result").classList.add('output__result__style');
+
+ var body=document.getElementById('body').value
+
+ fetch('http://localhost:8080/text/analyze', {
+  method: 'POST',
+  mode: 'cors',
+  body: JSON.stringify({
+    content:body
+  }),
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8',
+    'Access-Control-Allow-Origin' : "*"
+  }
+  })
+  .then(function(response){ 
+  return response.json()
+    })
+    .then(function(data){
+        console.log(data)
+        res=document.getElementById("result")
+        res.innerHTML = `
+                        word_count = ${data.word_count} <br>
+                        character_count_with_spaces = ${data.character_count_with_spaces} <br>
+                        character_count_without_spaces = ${data.character_count_without_spaces} <br>
+                        line_count = ${data.line_count} <br>
+                        unique_words = ${data.unique_words} <br>`;
+    }).catch(error => console.error('Error:', error)); 
+});
+
+</script>
+</html>
