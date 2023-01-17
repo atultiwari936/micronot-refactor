@@ -24,7 +24,6 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                     }
                     else{
                         if(filledQty < qty && filledQty > 0) status = "partially filled"
-                        BuyOrders.add(this)
                     }
 
                     //Update the potentialSellOrder that matched with this
@@ -38,6 +37,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                     if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) status = "partially filled"
                 }
             }
+            BuyOrders.add(this)
         }
         else if(type == "SELL"){
             for(potentialBuyOrder in BuyOrders){
@@ -54,7 +54,6 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                     }
                     else{
                         if(filledQty < qty && filledQty > 0) status = "partially filled"
-                        SellOrders.add(this)
                     }
 
                     //Update the order that matched with this
@@ -68,6 +67,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                     if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) status = "partially filled"
                 }
             }
+            SellOrders.add(this)
         }
         }
     }
