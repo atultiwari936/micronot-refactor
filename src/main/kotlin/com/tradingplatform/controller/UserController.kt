@@ -62,7 +62,7 @@ class UserController {
     @Post(value = "/{user_name}/order")
     fun createOrder(@Body body: OrderInput, @QueryValue user_name: String): Any {
         val errorList = arrayListOf<String>()
-        var newOrder = Order("BUY",-1,-1, "")
+        var newOrder : Order? = null
         if(Users.containsKey(user_name)){
             val user = Users[user_name]!!
             if(body.type == "BUY"){
