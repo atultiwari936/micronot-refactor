@@ -86,7 +86,7 @@ class UserController {
             else
                 errorList.add("Invalid type given")
         }
-        errorList.add("User doesn't exist")
+        else errorList.add("User doesn't exist")
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(errorList)
         // check if quantity and amount is sufficient or not
         // create order
