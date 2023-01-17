@@ -1,5 +1,7 @@
 package com.tradingplatform.model
 
+import java.util.PriorityQueue
+
 data class Order constructor(val type : String, val qty: Int, val price : Int) {
     var status = "unfilled"
     var filled = ArrayList<Pair<Int,Int>>()
@@ -15,6 +17,18 @@ fun executeOrders(){
 
 }
 
-val BuyOrders = HashMap<Int, Order>()
-val SellOrders = HashMap<Int, Order>()
+val BuyOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
+    when{
+        order1.price > order2.price -> -1
+        order1.price < order2.price -> 1
+        else -> {(order1.timestamp - order2.timestamp).toInt()}
+    }
+}
+val SellOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
+    when{
+        order1.price > order2.price -> 1
+        order1.price < order2.price -> -1
+        else -> {(order1.timestamp - order2.timestamp).toInt()}
+    }}
+
 val CompletedOrders = HashMap<Int, Order>()
