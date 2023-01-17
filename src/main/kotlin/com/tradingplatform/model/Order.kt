@@ -1,7 +1,7 @@
 package com.tradingplatform.model
 import kotlin.math.min
 import java.util.PriorityQueue
-data class Order constructor(val type : String, val qty: Int, val price : Int) {
+data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String) {
     var status = "unfilled"
     var filled = ArrayList<Array<Pair<String, Int>>>()
     val id = BuyOrders.size + SellOrders.size + CompletedOrders.size
@@ -15,13 +15,17 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                 else{
                     val potentialSellOrderQty = min(qty-filledQty, potentialSellOrder.qty-potentialSellOrder.filledQty)
 
-                    //Update new incoming potentialSellOrder
+                    //Update new incoming order
                     filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
                     filledQty += potentialSellOrderQty
+                    Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * potentialSellOrder.price
+                    Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
                     //Update the potentialSellOrder that matched with this
                     potentialSellOrder.filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
                     potentialSellOrder.filledQty += potentialSellOrderQty
+                    Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
+                    Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
                     if(potentialSellOrder.filledQty == potentialSellOrder.qty) {
                         potentialSellOrder.status = "filled"
                         SellOrders.remove(potentialSellOrder)
@@ -48,10 +52,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                     //Update new incoming order
                     filled.add(arrayOf(Pair("price",price),Pair("quantity",potentialBuyOrderQty)))
                     filledQty += potentialBuyOrderQty
+                    Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
+                    Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
 
                     //Update the order that matched with this
                     potentialBuyOrder.filled.add(arrayOf(Pair("price",price),Pair("quantity",potentialBuyOrderQty)))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
+                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * price
+                    Users[potentialBuyOrder.createdBy]!!.inventory_free += potentialBuyOrderQty
                     if(potentialBuyOrder.filledQty == potentialBuyOrder.qty) {
                         potentialBuyOrder.status = "filled"
                         BuyOrders.remove(potentialBuyOrder)
