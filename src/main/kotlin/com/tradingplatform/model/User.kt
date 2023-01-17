@@ -1,30 +1,24 @@
 package com.tradingplatform.model
 
-package ai.sahaj.gurukul.apidesign.model
-
-data class User {
-    val firstName: String
-    val lastName: String
-    val phoneNumber: String
-    val email: String
-    val userName: String
-    val wallet = mapOf<String, Int>()
-    val inventory = mapOf<String, Int>()
+data class User constructor(val firstName : String, val lastName : String, val phoneNumber : String, val email: String, val userName: String){
+    var wallet_free = 0
+    var wallet_locked = 0
+    var inventory_free = 0
+    var inventory_locked = 0
     val orders = arrayOf<Int>()
-    val myList = mutableListOf<Any>()
-
-
-    fun getAccountInfo(): MutableList<Any> {
-        myList.add(firstName)
-        myList.add(lastName)
-        myList.add(phoneNumber)
-        myList.add(email)
-        myList.add(userName)
-        myList.add(wallet)
-        myList.add(inventory)
-        myList.add(orders)
-
-        return myList;
-    }
+//    fun getAccountInfo(): MutableList<Any> {
+//        myList.add(firstName)
+//        myList.add(lastName)
+//        myList.add(phoneNumber)
+//        myList.add(email)
+//        myList.add(userName)
+//        myList.add(wallet)
+//        myList.add(inventory)
+//        myList.add(orders)
+//
+//        return myList;
+//    }
 
 }
+
+val Users = HashMap<Int,User>()
