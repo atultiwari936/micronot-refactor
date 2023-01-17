@@ -4,14 +4,18 @@ import java.util.PriorityQueue
 data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String) {
     var status = "unfilled"
     var filled = ArrayList<Array<Pair<String, Int>>>()
-    val id = BuyOrders.size + SellOrders.size + CompletedOrders.size
+    val id = BuyOrders.size + SellOrders.size + CompletedOrders.size*2
     val timestamp = System.currentTimeMillis()
     var filledQty = 0
     // The match orders function has to be called here
     init {
         if(type == "BUY"){
-            for(potentialSellOrder in SellOrders){
-                if(potentialSellOrder.price > price || filledQty == qty) break
+            while(SellOrders.isNotEmpty()){
+                val potentialSellOrder = SellOrders.poll()
+                if(potentialSellOrder.price > price || filledQty == qty){
+                    SellOrders.add(potentialSellOrder)
+                    break
+                }
                 else{
                     val potentialSellOrderQty = min(qty-filledQty, potentialSellOrder.qty-potentialSellOrder.filledQty)
 
@@ -44,8 +48,12 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
             }
         }
         else if(type == "SELL"){
-            for(potentialBuyOrder in BuyOrders){
-                if(potentialBuyOrder.price < price || filledQty == qty) break
+            while(BuyOrders.isNotEmpty()){
+                val potentialBuyOrder = BuyOrders.poll()
+                if(potentialBuyOrder.price < price || filledQty == qty){
+                    BuyOrders.add(potentialBuyOrder)
+                    break
+                }
                 else{
                     val potentialBuyOrderQty = min(qty-filledQty, potentialBuyOrder.qty-potentialBuyOrder.filledQty)
 
