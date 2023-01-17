@@ -68,9 +68,16 @@ class UserController {
         return HttpResponse.ok()
     }
 
-    @Get(value = "/{user_name}/accountInformation")
-    fun getAccountInformation(@Body body: String, @QueryValue user_name: String): HttpResponse<String>{
-        return HttpResponse.ok("")
+    @Get(value = "/{userName}/accountInformation")
+    fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
+        val errorList = arrayListOf<String>()
+        if(!Users.containsKey(userName))
+        {
+            errorList.add("User does not exist")
+            return HttpResponse.badRequest(errorList)
+        }
+
+        return HttpResponse.ok(Users[userName])
     }
 
     @Post(value = "/{userName}/inventory")
