@@ -7,7 +7,6 @@ import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Produces
 import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
@@ -61,11 +60,37 @@ class UserController {
     }
 
     @Post(value = "/{user_name}/order")
-    fun createOrder(@Body body: OrderInput, @QueryValue user_name: String): HttpResponse<OrderOutput>{
-
+    fun createOrder(@Body body: OrderInput, @QueryValue user_name: String): Any {
+        val errorList = arrayListOf<String>()
+        var newOrder = Order("BUY",-1,-1, "")
+        if(Users.containsKey(user_name)){
+            val user = Users[user_name]!!
+            if(body.type == "BUY"){
+                if(body.quantity * body.price > user.wallet_free) errorList.add("Insufficient funds in wallet")
+                else{
+                    newOrder = Order("BUY", body.quantity, body.price, user_name)
+                    user.orders.add(newOrder.id)
+                    user.wallet_free -= body.quantity * body.price
+                    user.wallet_locked += body.quantity * body.price
+                }
+            }
+            else if(body.type == "SELL"){
+                if(body.quantity > user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
+                else{
+                    newOrder = Order("SELL", body.quantity, body.price, user_name)
+                    user.orders.add(newOrder.id)
+                    user.inventory_free -= body.quantity
+                    user.inventory_locked += body.quantity
+                }
+            }
+            else
+                errorList.add("Invalid type given")
+        }
+        errorList.add("User doesn't exist")
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(errorList)
         // check if quantity and amount is sufficient or not
         // create order
-        return HttpResponse.ok()
+        return HttpResponse.ok(newOrder)
     }
 
     @Get(value = "/{user_name}/accountInformation")
