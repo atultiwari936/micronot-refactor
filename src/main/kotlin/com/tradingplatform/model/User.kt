@@ -21,4 +21,4 @@ data class User constructor(val firstName : String, val lastName : String, val p
 
 }
 
-val Users = HashMap<Int,User>()
+val Users = HashMap<String,User>()
