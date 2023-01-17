@@ -22,7 +22,8 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     //Update new incoming order
                     filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
                     filledQty += potentialSellOrderQty
-                    Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * potentialSellOrder.price
+                    Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
+                    Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
                     //Update the potentialSellOrder that matched with this
@@ -66,7 +67,8 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     //Update the order that matched with this
                     potentialBuyOrder.filled.add(arrayOf(Pair("price",price),Pair("quantity",potentialBuyOrderQty)))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
-                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * price
+                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * potentialBuyOrder.price
+                    Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - price)
                     Users[potentialBuyOrder.createdBy]!!.inventory_free += potentialBuyOrderQty
                     if(potentialBuyOrder.filledQty == potentialBuyOrder.qty) {
                         potentialBuyOrder.status = "filled"
