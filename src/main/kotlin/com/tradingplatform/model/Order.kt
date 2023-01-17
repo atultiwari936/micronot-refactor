@@ -10,14 +10,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
     // The match orders function has to be called here
     init {
         if(type == "BUY"){
-            for(order in SellOrders){
-                if(order.price > price) break
+            for(potentialSellOrder in SellOrders){
+                if(potentialSellOrder.price > price) break
                 else{
-                    val orderQty = min(qty, order.qty)
+                    val potentialSellOrderQty = min(qty, potentialSellOrder.qty)
 
-                    //Update new incoming order
-                    filled.add(arrayOf(Pair("price",order.price),Pair("quantity",orderQty)))
-                    filledQty += orderQty
+                    //Update new incoming potentialSellOrder
+                    filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
+                    filledQty += potentialSellOrderQty
                     if(filledQty == qty) {
                         status = "filled"
                         CompletedOrders[id] = this
@@ -27,23 +27,51 @@ data class Order constructor(val type : String, val qty: Int, val price : Int) {
                         BuyOrders.add(this)
                     }
 
-                    //Update the order that matched with this
-                    order.filled.add(arrayOf(Pair("price",order.price),Pair("quantity",orderQty)))
-                    order.filledQty += orderQty
-                    if(order.filledQty == order.qty) {
-                        order.status = "filled"
-                        SellOrders.remove(order)
-                        CompletedOrders[order.id] = order
+                    //Update the potentialSellOrder that matched with this
+                    potentialSellOrder.filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
+                    potentialSellOrder.filledQty += potentialSellOrderQty
+                    if(potentialSellOrder.filledQty == potentialSellOrder.qty) {
+                        potentialSellOrder.status = "filled"
+                        SellOrders.remove(potentialSellOrder)
+                        CompletedOrders[potentialSellOrder.id] = potentialSellOrder
                     }
-                    if(order.filledQty < order.qty && order.filledQty > 0) status = "partially filled"
+                    if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) status = "partially filled"
                 }
             }
         }
         else if(type == "SELL"){
-            SellOrders.add(this)
+            for(potentialBuyOrder in BuyOrders){
+                if(potentialBuyOrder.price < price) break
+                else{
+                    val orderQty = min(qty, potentialBuyOrder.qty)
+
+                    //Update new incoming order
+                    filled.add(arrayOf(Pair("price",price),Pair("quantity",orderQty)))
+                    filledQty += orderQty
+                    if(filledQty == qty) {
+                        status = "filled"
+                        CompletedOrders[id] = this
+                    }
+                    else{
+                        if(filledQty < qty && filledQty > 0) status = "partially filled"
+                        SellOrders.add(this)
+                    }
+
+                    //Update the order that matched with this
+                    potentialBuyOrder.filled.add(arrayOf(Pair("price",price),Pair("quantity",orderQty)))
+                    potentialBuyOrder.filledQty += orderQty
+                    if(potentialBuyOrder.filledQty == potentialBuyOrder.qty) {
+                        potentialBuyOrder.status = "filled"
+                        BuyOrders.remove(potentialBuyOrder)
+                        CompletedOrders[potentialBuyOrder.id] = potentialBuyOrder
+                    }
+                    if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) status = "partially filled"
+                }
+            }
+        }
         }
     }
-}
+
 
 val BuyOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
     when{
