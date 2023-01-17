@@ -10,7 +10,9 @@ import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Produces
 import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
+import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
+import java.io.Serializable
 
 @Controller("/user")
 class UserController {
@@ -71,18 +73,35 @@ class UserController {
         return HttpResponse.ok("")
     }
 
-    @Post(value = "/{user_name}/inventory")
-    fun addInventory(@Body body: QuantityInput, @QueryValue user_name: String): HttpResponse<String>{
+    @Post(value = "/{userName}/inventory")
+    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Serializable>? {
         //update quantity
 
-        return HttpResponse.ok("")
+        val errorList = arrayListOf<String>()
+        if(!Users.containsKey(userName))
+        {
+            errorList.add("User does not exist")
+            return HttpResponse.badRequest(errorList)
+        }
+
+        Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
+        return HttpResponse.ok("${body.quantity} ESOPs added to account")
     }
 
-    @Post(value = "/{user_name}/wallet")
-    fun addWallet(@Body body: WalletInput, @QueryValue user_name: String): HttpResponse<String>{
+    @Post(value = "/{userName}/wallet")
+    fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Serializable>? {
         //update wallet amount
 
-        return HttpResponse.ok("")
+        val errorList = arrayListOf<String>()
+        if(!Users.containsKey(userName))
+        {
+            errorList.add("User does not exist")
+            return HttpResponse.badRequest(errorList)
+        }
+
+        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
+        return HttpResponse.ok("${body.amount} added to account")
+
     }
 
     @Get(value = "/{user_name}/order")
