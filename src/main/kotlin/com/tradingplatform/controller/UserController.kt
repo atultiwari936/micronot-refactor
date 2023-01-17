@@ -136,9 +136,35 @@ class UserController {
 
     }
 
-    @Get(value = "/{user_name}/order")
-    fun getOrder(@Body body: String, @QueryValue user_name: String): HttpResponse<String>{
-        return HttpResponse.ok("")
+    @Get(value = "/{userName}/order")
+    fun getOrder(@QueryValue userName: String): Any? {
+        val errorList = arrayListOf<String>()
+        if(!Users.containsKey(userName))
+        {
+            errorList.add("User does not exist")
+            return HttpResponse.badRequest(errorList)
+        }
+
+        val userOrders = arrayListOf<Order>()
+        for(order in BuyOrders){
+            if(userName == order.createdBy){
+                userOrders.add(order)
+            }
+        }
+
+        for(order in SellOrders){
+            if(userName == order.createdBy){
+                userOrders.add(order)
+            }
+        }
+
+        for((key, order) in CompletedOrders){
+            if(userName == order.createdBy){
+                userOrders.add(order)
+            }
+        }
+
+        return HttpResponse.ok(userOrders)
     }
 
 
