@@ -158,9 +158,10 @@ class UserController {
             }
         }
 
-        for((key, order) in CompletedOrders){
-            if(userName == order.createdBy){
-                userOrders.add(order)
+        val userOrderIds = Users[userName]!!.orders
+        for(orderId in userOrderIds){
+            if(CompletedOrders.containsKey(orderId)){
+                userOrders.add(CompletedOrders[orderId]!!)
             }
         }
 
