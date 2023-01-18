@@ -31,12 +31,13 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     potentialSellOrder.filledQty += potentialSellOrderQty
                     Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
+                    if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) potentialSellOrder.status = "partially filled"
+                    SellOrders.add(potentialSellOrder)
                     if(potentialSellOrder.filledQty == potentialSellOrder.qty) {
                         potentialSellOrder.status = "filled"
                         SellOrders.remove(potentialSellOrder)
                         CompletedOrders[potentialSellOrder.id] = potentialSellOrder
                     }
-                    if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) potentialSellOrder.status = "partially filled"
                 }
             }
             if(filledQty == qty) {
@@ -70,12 +71,13 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * potentialBuyOrder.price
                     Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - price)
                     Users[potentialBuyOrder.createdBy]!!.inventory_free += potentialBuyOrderQty
+                    if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
+                    BuyOrders.add(potentialBuyOrder)
                     if(potentialBuyOrder.filledQty == potentialBuyOrder.qty) {
                         potentialBuyOrder.status = "filled"
                         BuyOrders.remove(potentialBuyOrder)
                         CompletedOrders[potentialBuyOrder.id] = potentialBuyOrder
                     }
-                    if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
                 }
             }
             if(filledQty == qty) {
