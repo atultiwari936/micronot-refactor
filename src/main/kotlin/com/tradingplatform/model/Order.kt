@@ -1,9 +1,12 @@
 package com.tradingplatform.model
 import kotlin.math.min
 import java.util.PriorityQueue
+
+data class PriceQtyPair(val price: Int, val quantity: Int) //Utility class to make the response json pretty
+
 data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String) {
     var status = "unfilled"
-    var filled = ArrayList<Array<Pair<String, Int>>>()
+    var filled = ArrayList<PriceQtyPair>()
     val id = BuyOrders.size + SellOrders.size + CompletedOrders.size*2
     val timestamp = System.currentTimeMillis()
     var filledQty = 0
@@ -20,14 +23,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     val potentialSellOrderQty = min(qty-filledQty, potentialSellOrder.qty-potentialSellOrder.filledQty)
 
                     //Update new incoming order
-                    filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
+                    filled.add(PriceQtyPair(potentialSellOrder.price,potentialSellOrderQty))
                     filledQty += potentialSellOrderQty
                     Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
                     Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
                     //Update the potentialSellOrder that matched with this
-                    potentialSellOrder.filled.add(arrayOf(Pair("price",potentialSellOrder.price),Pair("quantity",potentialSellOrderQty)))
+                    potentialSellOrder.filled.add( PriceQtyPair(potentialSellOrder.price,potentialSellOrderQty))
                     potentialSellOrder.filledQty += potentialSellOrderQty
                     Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
@@ -60,13 +63,13 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     val potentialBuyOrderQty = min(qty-filledQty, potentialBuyOrder.qty-potentialBuyOrder.filledQty)
 
                     //Update new incoming order
-                    filled.add(arrayOf(Pair("price",price),Pair("quantity",potentialBuyOrderQty)))
+                    filled.add(PriceQtyPair(price, potentialBuyOrderQty))
                     filledQty += potentialBuyOrderQty
                     Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
                     Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
 
                     //Update the order that matched with this
-                    potentialBuyOrder.filled.add(arrayOf(Pair("price",price),Pair("quantity",potentialBuyOrderQty)))
+                    potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
                     Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * potentialBuyOrder.price
                     Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - price)
