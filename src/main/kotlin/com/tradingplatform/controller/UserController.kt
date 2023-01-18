@@ -12,7 +12,7 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import java.io.Serializable
-
+//
 @Controller("/user")
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
