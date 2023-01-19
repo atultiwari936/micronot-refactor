@@ -28,7 +28,7 @@ class UserController {
         val lastName = body.lastName
 
         val emailRegex="^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
-        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]\$"
+        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){0,20}\$"
         val nameRegex="^[a-zA-z ]*\$"
         val phoneNumberRegex="^[0-9]{10}\$"
         //check for username, email and phone number
