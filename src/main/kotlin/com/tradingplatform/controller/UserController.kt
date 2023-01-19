@@ -145,13 +145,15 @@ class UserController {
         return HttpResponse.ok(Users[userName])
     }
 
-    @Post(value = "/{userName}/inventory")
+@Post(value = "/{userName}/inventory")
     fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
         //update quantity
 
 
         val response = mutableMapOf<String, MutableList<String>>();
         var errorList = mutableListOf<String>()
+        var msg = mutableListOf<String>()
+
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
@@ -161,15 +163,18 @@ class UserController {
         //check here
         if (body.quantity<=0 || body.quantity>2147483640)
         {
-            errorList.add("Enter a valid ESOP quantity")
+            errorList.add("Enter a valid positive ESOP quantity")
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
 
         }
 
-
+        
         Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-        return HttpResponse.ok("${body.quantity} ESOPs added to account")
+        msg.add("${body.quantity} ESOPs added to account")
+
+        response["message"]=msg
+        return HttpResponse.ok(response)
     }
 
     @Post(value = "/{userName}/wallet")
@@ -178,6 +183,8 @@ class UserController {
 
         val response = mutableMapOf<String, MutableList<String>>();
         var errorList = mutableListOf<String>()
+        var msg = mutableListOf<String>()
+
 
         if(!Users.containsKey(userName))
         {
@@ -195,7 +202,11 @@ class UserController {
         }
 
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
-        return HttpResponse.ok("${body.amount} added to account")
+        msg.add("${body.amount} added to account")
+        response["message"]=msg
+
+
+        return HttpResponse.ok(response)
 
     }
 
