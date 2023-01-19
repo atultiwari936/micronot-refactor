@@ -136,12 +136,18 @@ class UserController {
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
         val errorList = arrayListOf<String>()
+        val response = mutableMapOf<String, MutableList<String>>();
+
+
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
-        }
 
+        }
+        if(errorList.isNotEmpty()){
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+        }
         return HttpResponse.ok(Users[userName])
     }
 
@@ -163,7 +169,7 @@ class UserController {
     @Post(value = "/{userName}/wallet")
     fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Serializable>? {
         //update wallet amount
-
+        var responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
         if(!Users.containsKey(userName))
         {
@@ -172,17 +178,18 @@ class UserController {
         }
 
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
-        return HttpResponse.ok("${body.amount} added to account")
+        responseMap.put("message","${body.amount} added to account")
+        return HttpResponse.ok(responseMap)
 
     }
 
     @Get(value = "/{userName}/order")
     fun getOrder(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
+        val response = mutableMapOf<String, MutableList<String>>();
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
         }
 
         val userOrders = arrayListOf<Order>()
@@ -204,7 +211,10 @@ class UserController {
                 userOrders.add(CompletedOrders[orderId]!!)
             }
         }
-
+        if(errorList.isNotEmpty()){
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+        }
         return HttpResponse.ok(userOrders)
     }
 
