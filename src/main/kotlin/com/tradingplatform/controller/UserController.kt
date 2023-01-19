@@ -158,6 +158,7 @@ class UserController {
 
         val response = mutableMapOf<String, MutableList<String>>();
         var errorList = mutableListOf<String>()
+        var msg = mutableListOf<String>()
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
@@ -175,7 +176,10 @@ class UserController {
 
 
         Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-        return HttpResponse.ok("${body.quantity} ESOPs added to account")
+        msg.add("${body.quantity} ESOPs added to account")
+
+        response["message"]=msg
+        return HttpResponse.ok(response)
     }
 
     @Post(value = "/{userName}/wallet")
