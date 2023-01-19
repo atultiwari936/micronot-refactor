@@ -19,36 +19,76 @@ class UserController {
     fun register(@Body body: Register): MutableHttpResponse<out Any?>? {
         //error list
         val errorList = arrayListOf<String>()
+        val response = mutableMapOf<String, MutableList<String>>();
 
         val email = body.email
         val userName = body.userName
         val phoneNumber = body.phoneNumber
+        val firstName = body.firstName
+        val lastName = body.lastName
 
+        val emailRegex="^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
+        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]\$"
+        val nameRegex="^[a-zA-z ]*\$"
+        val phoneNumberRegex="^[0-9]{10}\$"
         //check for username, email and phone number
+        if(!(email.isNotEmpty()&&emailRegex.toRegex().matches(email)))
+        {
+            errorList.add("Invalid Email format")
+        }
+        if(!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName)))
+        {
+            errorList.add("Invalid UserName format")
+        }
+        if(!(phoneNumber.isNotEmpty()&&phoneNumberRegex.toRegex().matches(phoneNumber)&&phoneNumber[0]!='0'))
+        {
+            errorList.add("Invalid phone number")
+        }
+        if(!(firstName.isNotEmpty()&&nameRegex.toRegex().matches(firstName)))
+        {
+            errorList.add("First Name is not in valid format")
+        }
+        if(!(lastName.isNotEmpty()&&nameRegex.toRegex().matches(lastName)))
+        {
+            errorList.add("Last Name is not in valid format")
+        }
+
+        //Username consists of alphanumeric characters (a-zA-Z0-9), lowercase, or uppercase.
+//            Username allowed of the dot (.), underscore (_), and hyphen (-).
+//            The dot (.), underscore (_), or hyphen (-) must not be the first or last character.
+//            The dot (.), underscore (_), or hyphen (-) does not appear consecutively, e.g., java..regex
+//            The number of characters must be between 5 to 20.
+
+//            It allows numeric values from 0 to 9.
+//            Both uppercase and lowercase letters from a to z are allowed.
+//            Allowed are underscore “_”, hyphen “-“, and dot “.”
+//            Dot isn't allowed at the start and end of the local part.
+//            Consecutive dots aren't allowed.
+//            For the local part, a maximum of 64 characters are allowed.
         for((key, user) in Users) {
-            if(user.email == email){
+            if (user.email == email){
                 errorList.add("Email already exist")
             }
             if(user.userName == userName){
                 errorList.add("Username already exist")
             }
-            if(user.phoneNumber == phoneNumber) {
+            if (user.phoneNumber == phoneNumber) {
                 errorList.add("Phone number already exist")
             }
         }
         //if error list is not empty
         if(errorList.isNotEmpty()){
-            return HttpResponse.badRequest(errorList)
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
         }
 
         // if no error then just push user obj to the hashmap
-        val firstName = body.firstName
-        val lastName = body.lastName
+
 
         Users[userName] = User(firstName = firstName,
             lastName = lastName,
             userName = userName,
-            email = email,
+            email = email.lowercase(),
             phoneNumber = phoneNumber
         )
 
