@@ -152,29 +152,53 @@ class UserController {
     }
 
     @Post(value = "/{userName}/inventory")
-    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Serializable>? {
+    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
         //update quantity
 
-        val errorList = arrayListOf<String>()
+
+        val response = mutableMapOf<String, MutableList<String>>();
+        var errorList = mutableListOf<String>()
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
         }
+        //check here
+        if (body.quantity<=0 || body.quantity>2147483640)
+        {
+            errorList.add("Enter a valid ESOP quantity")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+
+        }
+
 
         Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
         return HttpResponse.ok("${body.quantity} ESOPs added to account")
     }
 
     @Post(value = "/{userName}/wallet")
-    fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Serializable>? {
+    fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Any>? {
         //update wallet amount
         var responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
+
+        val response = mutableMapOf<String, MutableList<String>>();
+
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+        }
+        ///check here
+        if(body.amount<=0 || body.amount>2147483640)
+        {
+            errorList.add("Enter a valid amount")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+
         }
 
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
