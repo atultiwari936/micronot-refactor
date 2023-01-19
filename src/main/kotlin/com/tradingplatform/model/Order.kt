@@ -4,10 +4,10 @@ import java.util.PriorityQueue
 
 data class PriceQtyPair(val price: Int, val quantity: Int) //Utility class to make the response json pretty
 
-data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String) {
+data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
     var status = "unfilled"
     var filled = ArrayList<PriceQtyPair>()
-    val id = BuyOrders.size + SellOrders.size + CompletedOrders.size*2
+    val id:Pair<Int,Int> = Pair(BuyOrders.size + SellOrders.size + CompletedOrders.size*2,esop_type)
     val timestamp = System.currentTimeMillis()
     var filledQty = 0
     // The match orders function has to be called here
@@ -19,26 +19,35 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     SellOrders.add(potentialSellOrder)
                     break
                 }
-                else{
-                    val potentialSellOrderQty = min(qty-filledQty, potentialSellOrder.qty-potentialSellOrder.filledQty)
+                else {
+                    val potentialSellOrderQty =
+                        min(qty - filledQty, potentialSellOrder.qty - potentialSellOrder.filledQty)
 
                     //Update new incoming order
-                    filled.add(PriceQtyPair(potentialSellOrder.price,potentialSellOrderQty))
+                    filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     filledQty += potentialSellOrderQty
                     Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
                     Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
                     //Update the potentialSellOrder that matched with this
-                    potentialSellOrder.filled.add( PriceQtyPair(potentialSellOrder.price,potentialSellOrderQty))
+                    potentialSellOrder.filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     potentialSellOrder.filledQty += potentialSellOrderQty
-                    Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
+
+                    if (potentialSellOrder.id.second == 1) {
+                        Users[potentialSellOrder.createdBy]!!.perf_locked -= potentialSellOrderQty
+                    } else {
+                        Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
+                    }
+
                     Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
                     if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) potentialSellOrder.status = "partially filled"
                     SellOrders.add(potentialSellOrder)
                     if(potentialSellOrder.filledQty == potentialSellOrder.qty) {
                         potentialSellOrder.status = "filled"
                         SellOrders.remove(potentialSellOrder)
+
+
                         CompletedOrders[potentialSellOrder.id] = potentialSellOrder
                     }
                 }
@@ -105,10 +114,13 @@ val BuyOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
 }
 val SellOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
     when{
+        order1.id.second > order2.id.second -> 1
+        order1.id.second < order2.id.second -> -1
         order1.price > order2.price -> 1
         order1.price < order2.price -> -1
         else -> {(order1.timestamp - order2.timestamp).toInt()}
-    }}
+        }
+    }
 
-val CompletedOrders = HashMap<Int, Order>()
+val CompletedOrders = HashMap<Pair<Int,Int>, Order>()
 

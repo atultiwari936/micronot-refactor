@@ -12,6 +12,8 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import java.io.Serializable
+import java.lang.Integer.min
+
 //
 @Controller("/user")
 class UserController {
@@ -108,19 +110,36 @@ class UserController {
             if(body.type == "BUY"){
                 if(body.quantity * body.price > user.wallet_free) errorList.add("Insufficient funds in wallet")
                 else{
-                    newOrder = Order("BUY", body.quantity, body.price, user_name)
-                    user.orders.add(newOrder.id)
                     user.wallet_free -= body.quantity * body.price
                     user.wallet_locked += body.quantity * body.price
+                    newOrder = Order("BUY", body.quantity, body.price, user_name, 3)
+                    user.orders.add(newOrder.id)
+
                 }
             }
             else if(body.type == "SELL"){
                 if(body.quantity > user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
                 else{
-                    newOrder = Order("SELL", body.quantity, body.price, user_name)
-                    user.orders.add(newOrder.id)
-                    user.inventory_free -= body.quantity
-                    user.inventory_locked += body.quantity
+                    if(user.perf_free > 0){
+                        val perfQuantity=min(user.perf_free,body.quantity)
+                        user.perf_locked+=perfQuantity
+                        user.perf_free-=perfQuantity
+                        body.quantity-=perfQuantity
+                        newOrder = Order("SELL",perfQuantity, body.price, user_name,1)
+                        user.orders.add(newOrder.id)
+
+                    }
+
+                    if(user.inventory_free > 0){
+                        val nperfQuantity=min(user.inventory_free,body.quantity)
+                        user.inventory_locked+=nperfQuantity
+                        user.inventory_free-=nperfQuantity
+                        body.quantity-=nperfQuantity
+                        newOrder = Order("SELL",nperfQuantity, body.price, user_name,0)
+                        user.orders.add(newOrder.id)
+
+
+                    }
                 }
             }
             else
@@ -204,6 +223,8 @@ class UserController {
                 userOrders.add(CompletedOrders[orderId]!!)
             }
         }
+
+        
 
         return HttpResponse.ok(userOrders)
     }
