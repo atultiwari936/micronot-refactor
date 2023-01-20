@@ -86,12 +86,14 @@ class UserValidation {
     }
 
 
-    fun isNameValid (list :ArrayList<String>,name:String)
+    fun isNameValid (list :ArrayList<String>,name:String) : Boolean
     {
         if(!(name.isNotEmpty()&& nameRegex.toRegex().matches(name)))
         {
             list.add("Invalid Name format")
+            return false
         }
+        return true
     }
 
 
@@ -106,11 +108,30 @@ class UserValidation {
 
 
 class OrderValidation {
-    fun isValidAmount(list:ArrayList<String>,amount :Int)
+    fun isValidAmount(list:ArrayList<String>,amount :Int, fieldName: String):Boolean
     {
         if(amount<=0 || amount>2147483640)
         {
-            list.add("Enter a valid amount")
+            list.add("Enter a valid $fieldName")
+            return false
         }
+        return true
+
     }
+
+    fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
+    {
+        return body[fieldName] == null
+    }
+
+    fun isValidEsopType(list:ArrayList<String>, esopType: String) : Boolean {
+        if (esopType == "PERFORMANCE" || esopType == "NORMAL") {
+            return true
+        }
+
+        list.add("ESOP type is not valid")
+        return false
+    }
+
 }
+
