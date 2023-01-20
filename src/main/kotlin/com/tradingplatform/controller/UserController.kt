@@ -13,8 +13,7 @@ import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
-import java.io.Serializable
-import java.lang.Integer.bitCount
+import io.micronaut.json.tree.JsonObject
 import java.lang.Integer.min
 
 
@@ -22,72 +21,51 @@ import java.lang.Integer.min
 @Controller("/user")
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
-    fun register(@Body body: Register): MutableHttpResponse<*>? {
+    fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
+        var fieldLists= arrayListOf<String>("userName","firstName","lastName","phoneNumber","email")
 
-        val userName = body.userName
-        val phoneNumber = body.phoneNumber
-        val firstName = body.firstName
-        val lastName = body.lastName
-
-        UserValidation().isEmailValid(errorList,body.email)
-        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]\$"
-        val nameRegex="^[a-zA-z ]*\$"
-        val phoneNumberRegex="^[0-9]{10}\$"
-        if(!(phoneNumber.isNotEmpty()&&phoneNumberRegex.toRegex().matches(phoneNumber)&&phoneNumber[0]!='0'))
-        {
-            errorList.add("Invalid phone number")
-        }
-        if(!(firstName.isNotEmpty()&&nameRegex.toRegex().matches(firstName)))
-        {
-            errorList.add("First Name is not in valid format")
-        }
-        if(!(lastName.isNotEmpty()&&nameRegex.toRegex().matches(lastName)))
-        {
-            errorList.add("Last Name is not in valid format")
-        }
-
-        //Username consists of alphanumeric characters (a-zA-Z0-9), lowercase, or uppercase.
-//            Username allowed of the dot (.), underscore (_), and hyphen (-).
-//            The dot (.), underscore (_), or hyphen (-) must not be the first or last character.
-//            The dot (.), underscore (_), or hyphen (-) does not appear consecutively, e.g., java..regex
-//            The number of characters must be between 5 to 20.
-
-//            It allows numeric values from 0 to 9.
-//            Both uppercase and lowercase letters from a to z are allowed.
-//            Allowed are underscore “_”, hyphen “-“, and dot “.”
-//            Dot isn't allowed at the start and end of the local part.
-//            Consecutive dots aren't allowed.
-//            For the local part, a maximum of 64 characters are allowed.
-        for((key, user) in Users) {
-            if (user.email == body.email){
-                errorList.add("Email already exist")
-            }
-            if(user.userName == body.userName){
-                errorList.add("Username already exist")
-            }
-            if (user.phoneNumber == body.phoneNumber) {
-                errorList.add("Phone number already exist")
+        //Check for empty fields
+        for (field in fieldLists) {
+            if (UserValidation().isFieldExists(field, body)) {
+                errorList.add("Enter the $field field")
+                errorResponse["error"] = errorList
             }
         }
-
-        if(errorList.isNotEmpty()){
-            errorResponse["error"] = errorList;
+        if (errorList.isNotEmpty()) {
             return HttpResponse.badRequest(errorResponse)
         }
 
+        val userName = body["userName"].stringValue
+        val phoneNumber = body["phoneNumber"].stringValue
+        val firstName = body["firstName"].stringValue
+        val lastName = body["lastName"].stringValue
+        val email=body["email"].stringValue
+
+        //Validations on all
+        UserValidation().isEmailValid(errorList,email)
+        UserValidation().isPhoneValid(errorList,phoneNumber)
+        UserValidation().isUserNameValid(errorList,userName)
+        UserValidation().isNameValid(errorList,firstName)
+        UserValidation().isNameValid(errorList,lastName)
 
 
+        if (errorList.isNotEmpty()) {
+            errorResponse["error"] = errorList
+            return HttpResponse.badRequest(errorResponse)
+        }
 
-        Users[userName] = User(firstName = body.firstName,
-            lastName = body.lastName,
-            userName = body.userName,
-            email =body.email.lowercase(),
-            phoneNumber = body.phoneNumber
+        Users[userName] = User(firstName = firstName,
+            lastName = lastName,
+            userName = userName,
+            email =email.lowercase(),
+            phoneNumber = phoneNumber
         )
+
         var okResponse=HashMap<String,String>()
         okResponse.put("message","User Registered successfully")
+
         return HttpResponse.ok(okResponse)
     }
 
