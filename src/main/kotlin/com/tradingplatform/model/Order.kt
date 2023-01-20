@@ -85,19 +85,19 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
 
                     if(id.second==1)
-                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * potentialBuyOrder.price
+                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
                     else {
 
-                        var taxAmount : Int = (potentialBuyOrderQty * potentialBuyOrder.price*0.02).roundToInt()
+                        var taxAmount : Int = (potentialBuyOrderQty * price*0.02).roundToInt()
 
-                        Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * potentialBuyOrder.price - taxAmount)
+                        Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
                         platformData.feesEarned+=taxAmount
                     }
                     //Update the order that matched with this
                     potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
-                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * potentialBuyOrder.price
-                    //Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - potentialBuyOrder.price)
+                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * price
+                    Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - price)
                     Users[potentialBuyOrder.createdBy]!!.inventory_free += potentialBuyOrderQty
                     if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
                     BuyOrders.add(potentialBuyOrder)
