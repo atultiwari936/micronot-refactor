@@ -5,7 +5,7 @@ import java.util.Objects
 
 class UserValidation {
     val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+[-]*[a-zA-z0-9]+[.])+[a-zA-Z]{2,}"
-    val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){0,20}\$"
+    val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
     val nameRegex="^[a-zA-z ]*\$"
     val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
     fun isUserExists(list: ArrayList<String>,userName: String)
