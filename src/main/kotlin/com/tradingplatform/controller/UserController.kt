@@ -236,6 +236,9 @@ class UserController {
         return HttpResponse.ok(responseMap)
 
     }
+
+
+
     @Get(value = "/{userName}/order")
     fun getOrder(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
@@ -245,30 +248,124 @@ class UserController {
             return HttpResponse.badRequest(errorList)
         }
 
-        val userOrders = arrayListOf<Order>()
+        var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
+
+
+        val userOrderIds = Users[userName]!!.orders
+
+        for(orderId in userOrderIds){
+
+            if(CompletedOrders.containsKey(orderId)){
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="filled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+            }
+        }
+
+
         for(order in BuyOrders){
             if(userName == order.createdBy){
-                userOrders.add(order)
+
+                var orderId=order.id
+
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="unfilled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    if(currOrder!!.status=="filled")
+                        currOrder.status="partially filled"
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+
+
+
+
+
             }
         }
 
         for(order in SellOrders){
             if(userName == order.createdBy){
-                userOrders.add(order)
+                var orderId=order.id
+
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="unfilled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    if(currOrder!!.status=="filled")
+                        currOrder.status="partially filled"
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+
             }
         }
 
-        val userOrderIds = Users[userName]!!.orders
-        for(orderId in userOrderIds){
-            if(CompletedOrders.containsKey(orderId)){
-                userOrders.add(CompletedOrders[orderId]!!)
-            }
-        }
 
-        
 
-        return HttpResponse.ok(userOrders)
+
+        var listOfOrders: MutableCollection<OrderHistory> = userOrders.values
+
+        return HttpResponse.ok(listOfOrders)
     }
 
 
+}
+
+
+data class OrderHistory constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
+    var status = "unfilled"
+    var filled = ArrayList<PriceQtyPair>()
+    var id: Int = 0
+    var timestamp = System.currentTimeMillis()
+    var filledQty = 0
 }
