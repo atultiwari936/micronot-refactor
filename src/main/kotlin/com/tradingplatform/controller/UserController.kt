@@ -12,6 +12,7 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import java.io.Serializable
+import java.lang.Integer.bitCount
 import java.lang.Integer.min
 
 //
@@ -188,8 +189,21 @@ class UserController {
         }
 
 
-        Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-        msg.add("${body.quantity} ESOPs added to account")
+        if(body.type!="NORMAL")
+        {
+            body.esopType=1
+        }
+
+
+        if(body.esopType==0) {
+            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
+            msg.add("${body.quantity} ESOPs added to account")
+        }
+        else {
+            Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body.quantity)!!
+            msg.add("${body.quantity} Performance ESOPs added to account")
+        }
+
 
         response["message"]=msg
         return HttpResponse.ok(response)

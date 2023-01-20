@@ -1,6 +1,8 @@
 package com.tradingplatform.model
 import kotlin.math.min
 import java.util.PriorityQueue
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 data class PriceQtyPair(val price: Int, val quantity: Int) //Utility class to make the response json pretty
 
@@ -35,12 +37,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     potentialSellOrder.filledQty += potentialSellOrderQty
 
                     if (potentialSellOrder.id.second == 1) {
+                        Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
                         Users[potentialSellOrder.createdBy]!!.perf_locked -= potentialSellOrderQty
                     } else {
+                        Users[potentialSellOrder.createdBy]!!.wallet_free += (potentialSellOrderQty * potentialSellOrder.price*0.98).roundToInt()
                         Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     }
 
-                    Users[potentialSellOrder.createdBy]!!.wallet_free += potentialSellOrderQty * potentialSellOrder.price
+
                     if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) potentialSellOrder.status = "partially filled"
                     SellOrders.add(potentialSellOrder)
                     if(potentialSellOrder.filledQty == potentialSellOrder.qty) {
@@ -75,7 +79,11 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     filled.add(PriceQtyPair(price, potentialBuyOrderQty))
                     filledQty += potentialBuyOrderQty
                     Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
-                    Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
+
+                    if(id.second==1)
+                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
+                    else
+                        Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price*0.98).roundToInt()
 
                     //Update the order that matched with this
                     potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
@@ -114,8 +122,8 @@ val BuyOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
 }
 val SellOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
     when{
-        order1.id.second > order2.id.second -> 1
-        order1.id.second < order2.id.second -> -1
+        order1.id.second > order2.id.second -> -1
+        order1.id.second < order2.id.second -> 1
         order1.price > order2.price -> 1
         order1.price < order2.price -> -1
         else -> {(order1.timestamp - order2.timestamp).toInt()}
