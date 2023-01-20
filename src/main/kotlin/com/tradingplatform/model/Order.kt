@@ -12,6 +12,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
     val id:Pair<Int,Int> = Pair(BuyOrders.size + SellOrders.size + CompletedOrders.size*2,esop_type)
     val timestamp = System.currentTimeMillis()
     var filledQty = 0
+
     // The match orders function has to be called here
     init {
         if(type == "BUY"){
@@ -25,14 +26,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     val potentialSellOrderQty =
                         min(qty - filledQty, potentialSellOrder.qty - potentialSellOrder.filledQty)
 
-                    //Update new incoming order
+
                     filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     filledQty += potentialSellOrderQty
                     Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
                     Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
-                    //Update the potentialSellOrder that matched with this
+
                     potentialSellOrder.filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     potentialSellOrder.filledQty += potentialSellOrderQty
 
@@ -79,7 +80,6 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                 else{
                     val potentialBuyOrderQty = min(qty-filledQty, potentialBuyOrder.qty-potentialBuyOrder.filledQty)
 
-                    //Update new incoming order
                     filled.add(PriceQtyPair(price, potentialBuyOrderQty))
                     filledQty += potentialBuyOrderQty
                     Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
@@ -93,7 +93,8 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
                         platformData.feesEarned+=taxAmount
                     }
-                    //Update the order that matched with this
+
+
                     potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
                     Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * price
