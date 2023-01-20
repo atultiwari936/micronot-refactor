@@ -179,10 +179,13 @@ class UserController {
         wallet["free"] = user!!.wallet_free
         wallet["locked"] = user!!.wallet_locked
 
-        var inventory = mutableMapOf<String, Int>()
-        inventory["free"] = user!!.inventory_free
-        inventory["locked"] = user!!.inventory_locked
+        var inventory = mutableListOf<InventoryOutput>()
 
+        val normal_inventory = InventoryOutput(user!!.inventory_free, user!!.inventory_locked, "NORMAL")
+        val performance_inventory = InventoryOutput(user!!.perf_free, user!!.perf_locked, "PERFORMANCE")
+
+        inventory.add(normal_inventory)
+        inventory.add(performance_inventory)
         response["firstName"] = user!!.firstName
         response["lastName"] = user!!.lastName
         response["phoneNumber"] = user!!.phoneNumber
