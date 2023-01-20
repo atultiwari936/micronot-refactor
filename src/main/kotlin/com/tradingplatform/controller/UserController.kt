@@ -230,22 +230,22 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var currOrderToOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    currOrderToOrderHistory.id=currOrder.id.first
-                    currOrderToOrderHistory.status="filled"
-                    currOrderToOrderHistory.timestamp=currOrder.timestamp
-                    currOrderToOrderHistory.filledQty=currOrder.filledQty
-                    currOrderToOrderHistory.filled=currOrder.filled
+                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="filled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(currOrderToOrderHistory.id,currOrderToOrderHistory)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var sameOrderMatched=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
-                    currOrder!!.filledQty+=sameOrderMatched!!.filledQty
-                    currOrder!!.filled.addAll(sameOrderMatched.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
@@ -260,25 +260,25 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var currOrderToOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    currOrderToOrderHistory.id=currOrder.id.first
-                    currOrderToOrderHistory.status="unfilled"
-                    currOrderToOrderHistory.timestamp=currOrder.timestamp
-                    currOrderToOrderHistory.filledQty=currOrder.filledQty
-                    currOrderToOrderHistory.filled=currOrder.filled
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(currOrderToOrderHistory.id,currOrderToOrderHistory)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var sameOrderMatched=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=sameOrderMatched!!.filledQty
-                    currOrder!!.filled.addAll(sameOrderMatched.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
@@ -291,25 +291,25 @@ class UserController {
                 {
                     var currOrder=CompletedOrders.get(orderId);
 
-                    var currOrderToOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    currOrderToOrderHistory.id=currOrder.id.first
-                    currOrderToOrderHistory.status="unfilled"
-                    currOrderToOrderHistory.timestamp=currOrder.timestamp
-                    currOrderToOrderHistory.filledQty=currOrder.filledQty
-                    currOrderToOrderHistory.filled=currOrder.filled
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(currOrderToOrderHistory.id,currOrderToOrderHistory)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var sameOrderMatched=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=sameOrderMatched!!.filledQty
-                    currOrder!!.filled.addAll(sameOrderMatched.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
 
             }
