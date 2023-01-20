@@ -5,7 +5,9 @@ data class User constructor(val firstName : String, val lastName : String, val p
     var wallet_locked = 0
     var inventory_free = 0
     var inventory_locked = 0
-    val orders = arrayListOf<Int>()
+    var perf_free = 0
+    var perf_locked = 0
+    val orders = arrayListOf<Pair<Int,Int>>()
 //    fun getAccountInfo(): MutableList<Any> {
 //        myList.add(firstName)
 //        myList.add(lastName)

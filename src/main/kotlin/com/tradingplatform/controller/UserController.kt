@@ -13,6 +13,10 @@ import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
+import java.io.Serializable
+import java.lang.Integer.bitCount
+import java.lang.Integer.min
+
 
 //
 @Controller("/user")
@@ -97,19 +101,36 @@ class UserController {
             if(body.type == "BUY"){
                 if(body.quantity * body.price > user.wallet_free) errorList.add("Insufficient funds in wallet")
                 else{
-                    newOrder = Order("BUY", body.quantity, body.price, user_name)
-                    user.orders.add(newOrder.id)
                     user.wallet_free -= body.quantity * body.price
                     user.wallet_locked += body.quantity * body.price
+                    newOrder = Order("BUY", body.quantity, body.price, user_name, 3)
+                    user.orders.add(newOrder.id)
+
                 }
             }
             else if(body.type == "SELL"){
                 if(body.quantity > user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
                 else{
-                    newOrder = Order("SELL", body.quantity, body.price, user_name)
-                    user.orders.add(newOrder.id)
-                    user.inventory_free -= body.quantity
-                    user.inventory_locked += body.quantity
+                    if(user.perf_free > 0 && body.esopType == "PERFORMANCE"){
+                        val perfQuantity=min(user.perf_free,body.quantity)
+                        user.perf_locked+=perfQuantity
+                        user.perf_free-=perfQuantity
+                        body.quantity-=perfQuantity
+                        newOrder = Order("SELL",perfQuantity, body.price, user_name,1)
+                        user.orders.add(newOrder.id)
+
+                    }
+
+                    if(user.inventory_free > 0 && body.esopType == "NORMAL"){
+                        val nperfQuantity=min(user.inventory_free,body.quantity)
+                        user.inventory_locked+=nperfQuantity
+                        user.inventory_free-=nperfQuantity
+                        body.quantity-=nperfQuantity
+                        newOrder = Order("SELL",nperfQuantity, body.price, user_name,0)
+                        user.orders.add(newOrder.id)
+
+
+                    }
                 }
             }
             else
@@ -159,17 +180,27 @@ class UserController {
             errorList.add("Enter a valid ESOP quantity")
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
-
+        }
+        
+        if(body.type!="NORMAL")
+        {
+            body.esopType=1
+        }
+        if(body.esopType==0) {
+            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
+            msg.add("${body.quantity} ESOPs added to account")
+        }
+        else {
+            Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body.quantity)!!
+            msg.add("${body.quantity} Performance ESOPs added to account")
         }
 
 
-        Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-        msg.add("${body.quantity} ESOPs added to account")
 
         response["message"]=msg
         return HttpResponse.ok(response)
     }
-
+    
     @Post(value = "/{userName}/wallet")
     fun addWallet(@Body body: WalletInput, @PathVariable userName:String): MutableHttpResponse<out Any>? {
 
@@ -184,8 +215,11 @@ class UserController {
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
         responseMap["message"] = "${body.amount} added to account"
 
+
         return HttpResponse.ok(responseMap)
     }
+
+
 
     @Get(value = "/{userName}/order")
     fun getOrder(@QueryValue userName: String): Any? {
@@ -196,31 +230,127 @@ class UserController {
             errorList.add("User does not exist")
         }
 
-        val userOrders = arrayListOf<Order>()
+        var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
+
+
+        val userOrderIds = Users[userName]!!.orders
+
+        for(orderId in userOrderIds){
+
+            if(CompletedOrders.containsKey(orderId)){
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="filled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+            }
+        }
+
+
         for(order in BuyOrders){
             if(userName == order.createdBy){
-                userOrders.add(order)
+
+                var orderId=order.id
+
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="unfilled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    if(currOrder!!.status=="filled")
+                        currOrder.status="partially filled"
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+
+
+
+
+
             }
         }
 
         for(order in SellOrders){
             if(userName == order.createdBy){
-                userOrders.add(order)
+                var orderId=order.id
+
+
+                if(!userOrders.contains(orderId.first))
+                {
+                    var currOrder=CompletedOrders.get(orderId);
+                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    x.id=currOrder.id.first
+                    x.status="unfilled"
+                    x.timestamp=currOrder.timestamp
+                    x.filledQty=currOrder.filledQty
+                    x.filled=currOrder.filled
+
+                    userOrders.put(x.id,x)
+                }
+                else
+                {
+                    var currOrder=userOrders[orderId.first]
+                    var now=CompletedOrders.get(orderId);
+
+                    if(currOrder!!.status=="filled")
+                        currOrder.status="partially filled"
+
+                    currOrder!!.filledQty+=now!!.filledQty
+                    currOrder!!.filled.addAll(now.filled)
+                }
+
             }
         }
 
-        val userOrderIds = Users[userName]!!.orders
-        for(orderId in userOrderIds){
-            if(CompletedOrders.containsKey(orderId)){
-                userOrders.add(CompletedOrders[orderId]!!)
-            }
-        }
         if(errorList.isNotEmpty()){
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
         }
-        return HttpResponse.ok(userOrders)
+        var listOfOrders: MutableCollection<OrderHistory> = userOrders.values
+
+        return HttpResponse.ok(listOfOrders)
+
     }
 
 
 }
+
+
+data class OrderHistory constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
+    var status = "unfilled"
+    var filled = ArrayList<PriceQtyPair>()
+    var id: Int = 0
+    var timestamp = System.currentTimeMillis()
+    var filledQty = 0
+}
+
