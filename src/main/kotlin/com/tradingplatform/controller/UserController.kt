@@ -144,20 +144,31 @@ class UserController {
 
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
-        val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, MutableList<String>>();
+        var response = mutableMapOf<String, Any>()
 
-
-        if(!Users.containsKey(userName))
-        {
-            errorList.add("User does not exist")
-
-        }
-        if(errorList.isNotEmpty()){
-            response["error"] = errorList;
+        if (!Users.containsKey(userName)) {
+            response["error"] = "User doesn't exist"
             return HttpResponse.badRequest(response)
         }
-        return HttpResponse.ok(Users[userName])
+
+        val user = Users[userName]
+
+        var wallet = mutableMapOf<String, Int>()
+        wallet["free"] = user!!.wallet_free
+        wallet["locked"] = user!!.wallet_locked
+
+        var inventory = mutableMapOf<String, Int>()
+        inventory["free"] = user!!.inventory_free
+        inventory["locked"] = user!!.inventory_locked
+
+        response["firstName"] = user!!.firstName
+        response["lastName"] = user!!.lastName
+        response["phoneNumber"] = user!!.phoneNumber
+        response["email"] = user!!.email
+        response["wallet"] = wallet
+        response["inventory"] = inventory
+
+        return HttpResponse.ok(response)
     }
 
     @Post(value = "/{userName}/inventory")
