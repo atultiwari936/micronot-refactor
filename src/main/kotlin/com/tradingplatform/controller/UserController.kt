@@ -13,6 +13,7 @@ import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.json.tree.JsonObject
 import java.io.Serializable
 import java.lang.Integer.bitCount
 import java.lang.Integer.min
@@ -23,6 +24,7 @@ import java.lang.Integer.min
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: Register): MutableHttpResponse<*>? {
+
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
 
@@ -77,9 +79,6 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-
-
-
         Users[userName] = User(firstName = body.firstName,
             lastName = body.lastName,
             userName = body.userName,
@@ -92,41 +91,74 @@ class UserController {
     }
 
     @Post(value = "/{user_name}/order")
-    fun createOrder(@Body body: OrderInput, @QueryValue user_name: String): Any {
+    fun createOrder(@Body body: JsonObject, @QueryValue user_name: String): Any {
         val response = mutableMapOf<String, MutableList<String>>();
         val errorList = arrayListOf<String>()
+        UserValidation().isUserExists(errorList,user_name)
+        if(body==null)
+        {
+            errorList.add("Empty Body")
+        }
+        if(body["quantity"]==null || !body["quantity"].isNumber)
+        {
+            errorList.add("Quantity data type is invalid")
+        }
+        if(body["price"]==null || !body["price"].isNumber)
+        {
+            errorList.add("Price data type is invalid")
+        }
+        if(body["type"]==null || !body["type"].isString)
+        {
+            errorList.add("Order type is invalid")
+        }
+        if(body["type"].toString()=="SELL")
+        {
+            if(body["esopType"]!=null || !body["esopType"].isString||body["esopType"].toString()!="PERFORMANCE")
+            {
+                errorList.add("esopType is invalid")
+            }
+
+        }
+        response["error"]=errorList
+        if(errorList.isNotEmpty())
+            return HttpResponse.badRequest(response)
+        OrderValidation().isValidAmount(errorList,body["price"].intValue)
+        OrderValidation().isValidAmount(errorList,body["quantity"].intValue)
+        if(errorList.isNotEmpty())
+            return HttpResponse.badRequest(response)
         var newOrder : Order? = null
         if(Users.containsKey(user_name)){
             val user = Users[user_name]!!
-            if(body.type == "BUY"){
-                if(body.quantity * body.price > user.wallet_free) errorList.add("Insufficient funds in wallet")
+            var bodyQuantity=body["quantity"].intValue
+            if(body["type"].stringValue == "BUY"){
+                if(bodyQuantity * body["price"].intValue > user.wallet_free) errorList.add("Insufficient funds in wallet")
                 else{
-                    user.wallet_free -= body.quantity * body.price
-                    user.wallet_locked += body.quantity * body.price
-                    newOrder = Order("BUY", body.quantity, body.price, user_name, 3)
+                    user.wallet_free -= bodyQuantity * body["price"].intValue
+                    user.wallet_locked += bodyQuantity * body["price"].intValue
+                    newOrder = Order("BUY", bodyQuantity,body["price"].intValue, user_name, 3)
                     user.orders.add(newOrder.id)
 
                 }
             }
-            else if(body.type == "SELL"){
-                if(body.quantity > user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
+            else if(body["type"].stringValue == "SELL"){
+                if(bodyQuantity> user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
                 else{
-                    if(user.perf_free > 0 && body.esopType == "PERFORMANCE"){
-                        val perfQuantity=min(user.perf_free,body.quantity)
+                    if(user.perf_free > 0 && body["esopType"].stringValue == "PERFORMANCE"){
+                        val perfQuantity=min(user.perf_free,bodyQuantity)
                         user.perf_locked+=perfQuantity
                         user.perf_free-=perfQuantity
-                        body.quantity-=perfQuantity
-                        newOrder = Order("SELL",perfQuantity, body.price, user_name,1)
+                        bodyQuantity-=perfQuantity
+                        newOrder = Order("SELL",perfQuantity, body["price"].intValue, user_name,1)
                         user.orders.add(newOrder.id)
 
                     }
 
-                    if(user.inventory_free > 0 && body.esopType == "NORMAL"){
-                        val nperfQuantity=min(user.inventory_free,body.quantity)
+                    if(user.inventory_free > 0 && body["esopType"].stringValue == "NORMAL"){
+                        val nperfQuantity=min(user.inventory_free,bodyQuantity)
                         user.inventory_locked+=nperfQuantity
                         user.inventory_free-=nperfQuantity
-                        body.quantity-=nperfQuantity
-                        newOrder = Order("SELL",nperfQuantity, body.price, user_name,0)
+                        bodyQuantity-=nperfQuantity
+                        newOrder = Order("SELL",nperfQuantity,body["price"].intValue, user_name,0)
                         user.orders.add(newOrder.id)
 
 
@@ -136,7 +168,6 @@ class UserController {
             else
                 errorList.add("Invalid type given")
         }
-        else errorList.add("User doesn't exist")
         response["error"] = errorList
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
         return HttpResponse.ok(newOrder)
@@ -144,15 +175,9 @@ class UserController {
 
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
-        val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
-
-
-        if(!Users.containsKey(userName))
-        {
-            errorList.add("User does not exist")
-
-        }
+        var errorList = arrayListOf<String>()
+        UserValidation().isUserExists(errorList,userName)
         if(errorList.isNotEmpty()){
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
@@ -161,80 +186,79 @@ class UserController {
     }
 
     @Post(value = "/{userName}/inventory")
-    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
-        //update quantity
-
-
+    fun addInventory(@Body body: JsonObject, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
         val response = mutableMapOf<String, MutableList<String>>();
-        var errorList = mutableListOf<String>()
+        var errorList = arrayListOf<String>()
         var msg = mutableListOf<String>()
-        if(!Users.containsKey(userName))
+        UserValidation().isUserExists(errorList,userName)
+        if(body==null)
         {
-            errorList.add("User does not exist")
-            response["error"] = errorList;
+            errorList.add("Empty Body")
+        }
+        if(body["quantity"]==null || !body["quantity"].isNumber)
+        {
+            errorList.add("Quantity data type is invalid")
+        }
+        if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
+        {
+            errorList.add("ESOP type is invalid")
+        }
+        response["error"] = errorList;
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)
+        OrderValidation().isValidOrderType(errorList,body["type"].stringValue)
+        response["error"]=errorList
+        if(errorList.isNotEmpty())
             return HttpResponse.badRequest(response)
-        }
-        //check here
-        if (body.quantity<=0 || body.quantity>2147483640)
-        {
-            errorList.add("Enter a valid ESOP quantity")
-            response["error"] = errorList;
-            return HttpResponse.badRequest(response)
-        }
-        
-        if(body.type!="NORMAL")
-        {
-            body.esopType=1
-        }
-        if(body.esopType==0) {
-            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-            msg.add("${body.quantity} ESOPs added to account")
+        if(body["esopType"].intValue==0) {
+            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body["quantity"].intValue)!!
+            msg.add("${body["quantity"].intValue} ESOPs added to account")
         }
         else {
-            Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body.quantity)!!
-            msg.add("${body.quantity} Performance ESOPs added to account")
+            Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body["quantity"].intValue)!!
+            msg.add("${body["quantity"].intValue} Performance ESOPs added to account")
         }
-
-
-
         response["message"]=msg
         return HttpResponse.ok(response)
     }
     
     @Post(value = "/{userName}/wallet")
-    fun addWallet(@Body body: WalletInput, @PathVariable userName:String): MutableHttpResponse<out Any>? {
-
+    fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
+        println(body.toString())
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
         UserValidation().isUserExists(errorList,userName)
-        OrderValidation().isValidAmount(errorList,body.amount)
+        if(body==null)
+        {
+            errorList.add("Empty Body")
+        }
+        if(body["amount"]==null || !body["amount"].isNumber)
+        {
+            errorList.add("Amount data type is invalid")
+        }
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-
-        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
-        responseMap["message"] = "${body.amount} added to account"
-
-
+        OrderValidation().isValidAmount(errorList,body["amount"].intValue)
+        response["error"] = errorList;
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body["amount"].intValue)!!
+        responseMap["message"] = "${body["amount"].intValue} added to account"
         return HttpResponse.ok(responseMap)
     }
-
-
 
     @Get(value = "/{userName}/order")
     fun getOrder(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
-        if(!Users.containsKey(userName))
-        {
-            errorList.add("User does not exist")
-        }
-
         var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
-
-
+        UserValidation().isUserExists(errorList,userName)
+        if(errorList.isNotEmpty())
+        {
+            response["error"]=errorList
+            return HttpResponse.badRequest(response)
+        }
         val userOrderIds = Users[userName]!!.orders
-
         for(orderId in userOrderIds){
 
             if(CompletedOrders.containsKey(orderId)){
@@ -261,8 +285,6 @@ class UserController {
                 }
             }
         }
-
-
         for(order in BuyOrders){
             if(userName == order.createdBy){
 
@@ -292,10 +314,6 @@ class UserController {
                     currOrder!!.filledQty+=now!!.filledQty
                     currOrder!!.filled.addAll(now.filled)
                 }
-
-
-
-
 
             }
         }
@@ -332,12 +350,7 @@ class UserController {
             }
         }
 
-        if(errorList.isNotEmpty()){
-            response["error"] = errorList;
-            return HttpResponse.badRequest(response)
-        }
         var listOfOrders: MutableCollection<OrderHistory> = userOrders.values
-
         return HttpResponse.ok(listOfOrders)
 
     }
