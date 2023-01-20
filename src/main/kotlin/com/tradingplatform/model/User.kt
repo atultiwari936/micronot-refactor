@@ -8,19 +8,6 @@ data class User constructor(val firstName : String, val lastName : String, val p
     var perf_free = 0
     var perf_locked = 0
     val orders = arrayListOf<Pair<Int,Int>>()
-//    fun getAccountInfo(): MutableList<Any> {
-//        myList.add(firstName)
-//        myList.add(lastName)
-//        myList.add(phoneNumber)
-//        myList.add(email)
-//        myList.add(userName)
-//        myList.add(wallet)
-//        myList.add(inventory)
-//        myList.add(orders)
-//
-//        return myList;
-//    }
-
 }
 
 val Users = HashMap<String,User>()

@@ -17,7 +17,7 @@ import io.micronaut.json.tree.JsonObject
 import java.lang.Integer.min
 
 
-//
+
 @Controller("/user")
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
@@ -33,6 +33,7 @@ class UserController {
                 errorResponse["error"] = errorList
             }
         }
+        
         if (errorList.isNotEmpty()) {
             return HttpResponse.badRequest(errorResponse)
         }
@@ -274,22 +275,22 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="filled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
+                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="filled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
@@ -304,31 +305,26 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="unfilled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
-
-
-
-
-
             }
         }
 
@@ -336,29 +332,29 @@ class UserController {
             if(userName == order.createdBy){
                 var orderId=order.id
 
-
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="unfilled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
+
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
 
             }
