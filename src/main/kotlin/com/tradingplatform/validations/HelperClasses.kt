@@ -1,5 +1,7 @@
 import com.tradingplatform.model.Users
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.json.tree.JsonObject
+import java.util.Objects
 
 class UserValidation {
     val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+[-]*[a-zA-z0-9]+[.])+[a-zA-Z]{2,}"
@@ -8,6 +10,10 @@ class UserValidation {
     val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
     fun isUserExists(list: ArrayList<String>,userName: String)
     {
+        if(userName==null) {
+            list.add("Username is Null")
+            return
+        }
         if(!Users.containsKey(userName))
             list.add("User Not Exist")
     }
@@ -96,9 +102,6 @@ class UserValidation {
         return true
     }
 
-
-
-
     fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
     {
         return body[fieldName] == null
@@ -133,5 +136,28 @@ class OrderValidation {
         return false
     }
 
+    fun isValidQuantity(list:ArrayList<String>,amount :Int)
+    {
+        if(amount<=0 || amount>2147483640)
+        {
+            list.add("Enter a valid Quantity in range of Int")
+        }
+    }
+    
+    fun isValidOrderType(list:ArrayList<String>,type:String)
+    {
+       var array = arrayListOf<String>("PERFORMANCE")
+        if(type !in array)
+            list.add("Invalid Order type")
+
+    }
 }
 
+class DataTypeValidation{
+    fun isDataTypeValid(list: ArrayList<String>,input:Any,reqType:String)
+    {
+        println(input::class.simpleName==reqType)
+        if(input==null||input::class.simpleName==reqType)
+            list.add("Invalid Order type")
+    }
+}
