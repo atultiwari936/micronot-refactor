@@ -14,175 +14,190 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.json.tree.JsonObject
-import java.io.Serializable
-import java.lang.Integer.bitCount
 import java.lang.Integer.min
 
 
-//
+
 @Controller("/user")
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
-    fun register(@Body body: Register): MutableHttpResponse<*>? {
-
+    fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
+   
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
+        var fieldLists= arrayListOf<String>("userName","firstName","lastName","phoneNumber","email")
 
-        val userName = body.userName
-        val phoneNumber = body.phoneNumber
-        val firstName = body.firstName
-        val lastName = body.lastName
-
-        UserValidation().isEmailValid(errorList,body.email)
-        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]\$"
-        val nameRegex="^[a-zA-z ]*\$"
-        val phoneNumberRegex="^[0-9]{10}\$"
-        if(!(phoneNumber.isNotEmpty()&&phoneNumberRegex.toRegex().matches(phoneNumber)&&phoneNumber[0]!='0'))
-        {
-            errorList.add("Invalid phone number")
-        }
-        if(!(firstName.isNotEmpty()&&nameRegex.toRegex().matches(firstName)))
-        {
-            errorList.add("First Name is not in valid format")
-        }
-        if(!(lastName.isNotEmpty()&&nameRegex.toRegex().matches(lastName)))
-        {
-            errorList.add("Last Name is not in valid format")
-        }
-
-        //Username consists of alphanumeric characters (a-zA-Z0-9), lowercase, or uppercase.
-//            Username allowed of the dot (.), underscore (_), and hyphen (-).
-//            The dot (.), underscore (_), or hyphen (-) must not be the first or last character.
-//            The dot (.), underscore (_), or hyphen (-) does not appear consecutively, e.g., java..regex
-//            The number of characters must be between 5 to 20.
-
-//            It allows numeric values from 0 to 9.
-//            Both uppercase and lowercase letters from a to z are allowed.
-//            Allowed are underscore “_”, hyphen “-“, and dot “.”
-//            Dot isn't allowed at the start and end of the local part.
-//            Consecutive dots aren't allowed.
-//            For the local part, a maximum of 64 characters are allowed.
-        for((key, user) in Users) {
-            if (user.email == body.email){
-                errorList.add("Email already exist")
-            }
-            if(user.userName == body.userName){
-                errorList.add("Username already exist")
-            }
-            if (user.phoneNumber == body.phoneNumber) {
-                errorList.add("Phone number already exist")
+        //Check for empty fields
+        for (field in fieldLists) {
+            if (UserValidation().isFieldExists(field, body)) {
+                errorList.add("Enter the $field field")
+                errorResponse["error"] = errorList
             }
         }
-
-        if(errorList.isNotEmpty()){
-            errorResponse["error"] = errorList;
+        
+        if (errorList.isNotEmpty()) {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        Users[userName] = User(firstName = body.firstName,
-            lastName = body.lastName,
-            userName = body.userName,
-            email =body.email.lowercase(),
-            phoneNumber = body.phoneNumber
+        val userName = body["userName"].stringValue
+        val phoneNumber = body["phoneNumber"].stringValue
+        val firstName = body["firstName"].stringValue
+        val lastName = body["lastName"].stringValue
+        val email=body["email"].stringValue
+
+        //Validations on all
+        UserValidation().isEmailValid(errorList,email)
+        UserValidation().isPhoneValid(errorList,phoneNumber)
+        UserValidation().isUserNameValid(errorList,userName)
+        UserValidation().isNameValid(errorList,firstName)
+        UserValidation().isNameValid(errorList,lastName)
+
+
+        if (errorList.isNotEmpty()) {
+            errorResponse["error"] = errorList
+            return HttpResponse.badRequest(errorResponse)
+        }
+
+        Users[userName] = User(firstName = firstName,
+            lastName = lastName,
+            userName = userName,
+            email =email.lowercase(),
+            phoneNumber = phoneNumber
         )
+
         var okResponse=HashMap<String,String>()
         okResponse.put("message","User Registered successfully")
+
         return HttpResponse.ok(okResponse)
     }
 
     @Post(value = "/{user_name}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue user_name: String): Any {
-        val response = mutableMapOf<String, MutableList<String>>();
+        val response = mutableMapOf<String, Any>();
         val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList,user_name)
-        if(body==null)
+        var fieldLists= arrayListOf<String>("quantity","type","price")
+        for (field in fieldLists)
         {
-            errorList.add("Empty Body")
-        }
-        if(body["quantity"]==null || !body["quantity"].isNumber)
-        {
-            errorList.add("Quantity data type is invalid")
-        }
-        if(body["price"]==null || !body["price"].isNumber)
-        {
-            errorList.add("Price data type is invalid")
-        }
-        if(body["type"]==null || !body["type"].isString)
-        {
-            errorList.add("Order type is invalid")
-        }
-        if(body["type"].toString()=="SELL")
-        {
-            if(body["esopType"]!=null || !body["esopType"].isString||body["esopType"].toString()!="PERFORMANCE")
-            {
-                errorList.add("esopType is invalid")
+            if (OrderValidation().isFieldExists(field, body)) {
+                errorList.add("Enter the $field field")
             }
-
         }
-        response["error"]=errorList
-        if(errorList.isNotEmpty())
+
+        if (!body["quantity"].isNumber) {
+            errorList.add("Quantity is not valid")
+            response["error"] = errorList
+        }
+        if (!body["price"].isNumber) {
+            errorList.add("Price is not valid")
+            response["error"] = errorList
+        }
+
+        if (errorList.isNotEmpty())
+        {
+            response["error"]=errorList
             return HttpResponse.badRequest(response)
-        OrderValidation().isValidAmount(errorList,body["price"].intValue)
-        OrderValidation().isValidAmount(errorList,body["quantity"].intValue)
-        if(errorList.isNotEmpty())
-            return HttpResponse.badRequest(response)
+        }
+
+
+        var quantity = body["quantity"].intValue
+        val type = body["type"].stringValue
+        var price = body["price"].intValue
+        val esopType = if (body["esopType"] !== null) body["esopType"].stringValue else "NORMAL"
+
+        OrderValidation().isValidAmount(errorList, quantity, "quantity")
+        OrderValidation().isValidAmount(errorList, price,"price")
+        OrderValidation().isValidEsopType(errorList, esopType)
+
+
         var newOrder : Order? = null
         if(Users.containsKey(user_name)){
             val user = Users[user_name]!!
-            var bodyQuantity=body["quantity"].intValue
-            if(body["type"].stringValue == "BUY"){
-                if(bodyQuantity * body["price"].intValue > user.wallet_free) errorList.add("Insufficient funds in wallet")
+            if(type == "BUY"){
+                if(quantity * price > user.wallet_free) errorList.add("Insufficient funds in wallet")
                 else{
-                    user.wallet_free -= bodyQuantity * body["price"].intValue
-                    user.wallet_locked += bodyQuantity * body["price"].intValue
-                    newOrder = Order("BUY", bodyQuantity,body["price"].intValue, user_name, 3)
+                    user.wallet_free -= quantity * price
+                    user.wallet_locked += quantity * price
+                    newOrder = Order("BUY", quantity, price, user_name, esopNormal)
                     user.orders.add(newOrder.id)
 
                 }
             }
-            else if(body["type"].stringValue == "SELL"){
-                if(bodyQuantity> user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
-                else{
-                    if(user.perf_free > 0 && body["esopType"].stringValue == "PERFORMANCE"){
-                        val perfQuantity=min(user.perf_free,bodyQuantity)
-                        user.perf_locked+=perfQuantity
-                        user.perf_free-=perfQuantity
-                        bodyQuantity-=perfQuantity
-                        newOrder = Order("SELL",perfQuantity, body["price"].intValue, user_name,1)
+            else if(type == "SELL"){
+                if (esopType == "PERFORMANCE") {
+                    if (quantity > user.perf_free) {
+                        errorList.add("Insufficient Performance ESOPs in inventory")
+                    }
+                    else {
+                        user.perf_locked += quantity
+                        user.perf_free -= quantity
+                        newOrder = Order("SELL", quantity, price, user_name, esopPerformance)
                         user.orders.add(newOrder.id)
 
                     }
-
-                    if(user.inventory_free > 0 && body["esopType"].stringValue == "NORMAL"){
-                        val nperfQuantity=min(user.inventory_free,bodyQuantity)
-                        user.inventory_locked+=nperfQuantity
-                        user.inventory_free-=nperfQuantity
-                        bodyQuantity-=nperfQuantity
-                        newOrder = Order("SELL",nperfQuantity,body["price"].intValue, user_name,0)
+                } else if (esopType == "NORMAL") {
+                    if (quantity > user.inventory_free) {
+                        errorList.add("Insufficient Normal ESOPs in inventory")
+                    }
+                    else {
+                        user.inventory_locked += quantity
+                        user.inventory_free -= quantity
+                        newOrder = Order("SELL", quantity, price, user_name, esopNormal)
                         user.orders.add(newOrder.id)
-
-
                     }
                 }
             }
             else
                 errorList.add("Invalid type given")
+        } else  {
+            errorList.add("User doesn't exist")
         }
+
         response["error"] = errorList
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        return HttpResponse.ok(newOrder)
+        if (errorList.isNotEmpty()) {
+            return HttpResponse.badRequest(response)
+        }
+
+        response["orderId"] = newOrder!!.id.first
+        response["quantity"] = quantity
+        response["type"] = type
+        response["price"] = price
+
+        return HttpResponse.ok(response)
     }
 
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
-        val response = mutableMapOf<String, MutableList<String>>();
+
+        var response = mutableMapOf<String,Any>();
         var errorList = arrayListOf<String>()
         UserValidation().isUserExists(errorList,userName)
         if(errorList.isNotEmpty()){
             response["error"] = errorList;
+
             return HttpResponse.badRequest(response)
         }
-        return HttpResponse.ok(Users[userName])
+
+        val user = Users[userName]
+
+        var wallet = mutableMapOf<String, Int>()
+        wallet["free"] = user!!.wallet_free
+        wallet["locked"] = user!!.wallet_locked
+
+        var inventory = mutableListOf<InventoryOutput>()
+
+        val normal_inventory = InventoryOutput(user!!.inventory_free, user!!.inventory_locked, "NORMAL")
+        val performance_inventory = InventoryOutput(user!!.perf_free, user!!.perf_locked, "PERFORMANCE")
+
+        inventory.add(normal_inventory)
+        inventory.add(performance_inventory)
+        response["firstName"] = user!!.firstName
+        response["lastName"] = user!!.lastName
+        response["phoneNumber"] = user!!.phoneNumber
+        response["email"] = user!!.email
+        response["wallet"] = wallet
+        response["inventory"] = inventory
+
+        return HttpResponse.ok(response)
     }
 
     @Post(value = "/{userName}/inventory")
@@ -239,7 +254,7 @@ class UserController {
         }
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        OrderValidation().isValidAmount(errorList,body["amount"].intValue)
+        OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body["amount"].intValue)!!
@@ -266,22 +281,22 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="filled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
+                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="filled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
@@ -294,27 +309,26 @@ class UserController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="unfilled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
-
             }
         }
 
@@ -322,29 +336,29 @@ class UserController {
             if(userName == order.createdBy){
                 var orderId=order.id
 
-
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=CompletedOrders.get(orderId);
-                    var x : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    x.id=currOrder.id.first
-                    x.status="unfilled"
-                    x.timestamp=currOrder.timestamp
-                    x.filledQty=currOrder.filledQty
-                    x.filled=currOrder.filled
 
-                    userOrders.put(x.id,x)
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    partialOrderHistory.id=currOrder.id.first
+                    partialOrderHistory.status="unfilled"
+                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.filledQty=currOrder.filledQty
+                    partialOrderHistory.filled=currOrder.filled
+
+                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var now=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders.get(orderId);
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
 
-                    currOrder!!.filledQty+=now!!.filledQty
-                    currOrder!!.filled.addAll(now.filled)
+                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
 
             }

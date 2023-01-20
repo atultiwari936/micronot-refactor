@@ -4,6 +4,9 @@ import java.util.PriorityQueue
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
+val esopNormal = 0
+val esopPerformance = 1
+
 data class PriceQtyPair(val price: Int, val quantity: Int) //Utility class to make the response json pretty
 
 data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
@@ -12,6 +15,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
     val id:Pair<Int,Int> = Pair(BuyOrders.size + SellOrders.size + CompletedOrders.size*2,esop_type)
     val timestamp = System.currentTimeMillis()
     var filledQty = 0
+
     // The match orders function has to be called here
     init {
         if(type == "BUY"){
@@ -25,14 +29,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     val potentialSellOrderQty =
                         min(qty - filledQty, potentialSellOrder.qty - potentialSellOrder.filledQty)
 
-                    //Update new incoming order
+
                     filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     filledQty += potentialSellOrderQty
                     Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
                     Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
 
-                    //Update the potentialSellOrder that matched with this
+
                     potentialSellOrder.filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                     potentialSellOrder.filledQty += potentialSellOrderQty
 
@@ -79,25 +83,25 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                 else{
                     val potentialBuyOrderQty = min(qty-filledQty, potentialBuyOrder.qty-potentialBuyOrder.filledQty)
 
-                    //Update new incoming order
                     filled.add(PriceQtyPair(price, potentialBuyOrderQty))
                     filledQty += potentialBuyOrderQty
                     Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
 
                     if(id.second==1)
-                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * potentialBuyOrder.price
+                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
                     else {
 
-                        var taxAmount : Int = (potentialBuyOrderQty * potentialBuyOrder.price*0.02).roundToInt()
+                        var taxAmount : Int = (potentialBuyOrderQty * price*0.02).roundToInt()
 
-                        Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * potentialBuyOrder.price - taxAmount)
+                        Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
                         platformData.feesEarned+=taxAmount
                     }
-                    //Update the order that matched with this
+
+
                     potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                     potentialBuyOrder.filledQty += potentialBuyOrderQty
-                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * potentialBuyOrder.price
-                    //Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - potentialBuyOrder.price)
+                    Users[potentialBuyOrder.createdBy]!!.wallet_locked -= potentialBuyOrderQty * price
+                    Users[potentialBuyOrder.createdBy]!!.wallet_free += potentialBuyOrderQty * (potentialBuyOrder.price - price)
                     Users[potentialBuyOrder.createdBy]!!.inventory_free += potentialBuyOrderQty
                     if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
                     BuyOrders.add(potentialBuyOrder)
