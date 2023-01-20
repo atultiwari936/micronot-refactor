@@ -30,7 +30,7 @@ class UserController {
         val lastName = body.lastName
 
         val emailRegex="^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$"
-        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]\$"
+        val userNameRegex="^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){0,18}\$"
         val nameRegex="^[a-zA-z ]*\$"
         val phoneNumberRegex="^[0-9]{10}\$"
         //check for username, email and phone number
@@ -120,7 +120,7 @@ class UserController {
             else if(body.type == "SELL"){
                 if(body.quantity > user.inventory_free) errorList.add("Insufficient ESOPs in inventory")
                 else{
-                    if(user.perf_free > 0){
+                    if(user.perf_free > 0 && body.esopType == "PERFORMANCE"){
                         val perfQuantity=min(user.perf_free,body.quantity)
                         user.perf_locked+=perfQuantity
                         user.perf_free-=perfQuantity
@@ -130,7 +130,7 @@ class UserController {
 
                     }
 
-                    if(user.inventory_free > 0){
+                    if(user.inventory_free > 0 && body.esopType == "NORMAL"){
                         val nperfQuantity=min(user.inventory_free,body.quantity)
                         user.inventory_locked+=nperfQuantity
                         user.inventory_free-=nperfQuantity
@@ -165,36 +165,63 @@ class UserController {
     }
 
     @Post(value = "/{userName}/inventory")
-    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Serializable>? {
+    fun addInventory(@Body body: QuantityInput, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
         //update quantity
 
-        val errorList = arrayListOf<String>()
+
+        val response = mutableMapOf<String, MutableList<String>>();
+        var errorList = mutableListOf<String>()
+        var msg = mutableListOf<String>()
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+        }
+        //check here
+        if (body.quantity<=0 || body.quantity>2147483640)
+        {
+            errorList.add("Enter a valid ESOP quantity")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+
         }
 
+
         Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body.quantity)!!
-        return HttpResponse.ok("${body.quantity} ESOPs added to account")
+        msg.add("${body.quantity} ESOPs added to account")
+
+        response["message"]=msg
+        return HttpResponse.ok(response)
     }
-
     @Post(value = "/{userName}/wallet")
-    fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Serializable>? {
+    fun addWallet(@Body body: WalletInput, @PathVariable(name = "userName")userName:String): MutableHttpResponse<out Any>? {
         //update wallet amount
-
+        var responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
+
+        val response = mutableMapOf<String, MutableList<String>>();
+
         if(!Users.containsKey(userName))
         {
             errorList.add("User does not exist")
-            return HttpResponse.badRequest(errorList)
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+        }
+        ///check here
+        if(body.amount<=0 || body.amount>2147483640)
+        {
+            errorList.add("Enter a valid amount")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
+
         }
 
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body.amount)!!
-        return HttpResponse.ok("${body.amount} added to account")
+        responseMap.put("message","${body.amount} added to account")
+        return HttpResponse.ok(responseMap)
 
     }
-
     @Get(value = "/{userName}/order")
     fun getOrder(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
