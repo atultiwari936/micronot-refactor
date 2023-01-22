@@ -15,7 +15,8 @@ import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.json.tree.JsonObject
 import java.lang.Integer.min
-
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 
 @Controller("/user")
@@ -83,20 +84,19 @@ class UserController {
             }
         }
 
-        if (!body["quantity"].isNumber) {
+        if (body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
             errorList.add("Quantity is not valid")
             response["error"] = errorList
         }
-        if (!body["price"].isNumber) {
+        if (body["price"]==null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt()!=body["price"].intValue) {
             errorList.add("Price is not valid")
-            response["error"] = errorList
+
+        }
+        if (body["type"]==null || !body["type"].isString || (body["type"].stringValue!="SELL" && body["type"].stringValue!="BUY")) {
+            errorList.add("Order Type is not valid")
         }
 
-        if (errorList.isNotEmpty())
-        {
-            response["error"]=errorList
-            return HttpResponse.badRequest(response)
-        }
+
 
 
         var quantity = body["quantity"].intValue
@@ -104,9 +104,19 @@ class UserController {
         var price = body["price"].intValue
         val esopType = if (body["esopType"] !== null) body["esopType"].stringValue else "NORMAL"
 
+
+
+
         OrderValidation().isValidAmount(errorList, quantity, "quantity")
         OrderValidation().isValidAmount(errorList, price,"price")
         OrderValidation().isValidEsopType(errorList, esopType)
+
+
+        if (errorList.isNotEmpty())
+        {
+            response["error"]=errorList
+            return HttpResponse.badRequest(response)
+        }
 
 
         var newOrder : Order? = null
@@ -210,33 +220,34 @@ class UserController {
         {
             errorList.add("Empty Body")
         }
-        if(body["quantity"]==null || !body["quantity"].isNumber)
-        {
+        if(body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+
             errorList.add("Quantity data type is invalid")
         }
+        else
+            OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)
+
         if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
         {
             errorList.add("ESOP type is invalid")
         }
+
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)
-        OrderValidation().isValidOrderType(errorList,body["type"].stringValue)
-        response["error"]=errorList
-        if(errorList.isNotEmpty())
-            return HttpResponse.badRequest(response)
-        if(body["esopType"].intValue==0) {
-            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body["quantity"].intValue)!!
-            msg.add("${body["quantity"].intValue} ESOPs added to account")
-        }
-        else {
+
+        if(body["type"]!=null) {
             Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body["quantity"].intValue)!!
             msg.add("${body["quantity"].intValue} Performance ESOPs added to account")
+        }
+        else {
+            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body["quantity"].intValue)!!
+            msg.add("${body["quantity"].intValue} ESOPs added to account")
         }
         response["message"]=msg
         return HttpResponse.ok(response)
     }
-    
+
+
     @Post(value = "/{userName}/wallet")
     fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
         println(body.toString())
@@ -248,15 +259,14 @@ class UserController {
         {
             errorList.add("Empty Body")
         }
-        if(body["amount"]==null || !body["amount"].isNumber)
-        {
+        if(body["amount"]==null || !body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue))
             errorList.add("Amount data type is invalid")
-        }
+        else
+            OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
+
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
-        response["error"] = errorList;
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body["amount"].intValue)!!
         responseMap["message"] = "${body["amount"].intValue} added to account"
         return HttpResponse.ok(responseMap)
@@ -280,7 +290,7 @@ class UserController {
 
                 if(!userOrders.contains(orderId.first))
                 {
-                    var currOrder=CompletedOrders.get(orderId);
+                    var currOrder=CompletedOrders[orderId];
                     var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="filled"
@@ -293,22 +303,24 @@ class UserController {
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=CompletedOrders.get(orderId);
+                    var exisitingOrder=CompletedOrders[orderId];
 
                     currOrder!!.filledQty+=exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
+
         for(order in BuyOrders){
             if(userName == order.createdBy){
 
                 var orderId=order.id
 
 
+
                 if(!userOrders.contains(orderId.first))
                 {
-                    var currOrder=CompletedOrders.get(orderId);
+                    var currOrder=order
                     var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="unfilled"
@@ -316,12 +328,12 @@ class UserController {
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
+                    userOrders[partialOrderHistory.id] = partialOrderHistory
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=CompletedOrders.get(orderId);
+                    var exisitingOrder=order
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"
@@ -338,7 +350,7 @@ class UserController {
 
                 if(!userOrders.contains(orderId.first))
                 {
-                    var currOrder=CompletedOrders.get(orderId);
+                    var currOrder=order
 
                     var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
@@ -347,12 +359,12 @@ class UserController {
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
+                    userOrders[partialOrderHistory.id] = partialOrderHistory
                 }
                 else
                 {
                     var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=CompletedOrders.get(orderId);
+                    var exisitingOrder=order
 
                     if(currOrder!!.status=="filled")
                         currOrder.status="partially filled"

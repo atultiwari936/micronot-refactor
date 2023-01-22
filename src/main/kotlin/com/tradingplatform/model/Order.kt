@@ -1,6 +1,7 @@
 package com.tradingplatform.model
 import kotlin.math.min
 import java.util.PriorityQueue
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
@@ -45,7 +46,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         Users[potentialSellOrder.createdBy]!!.perf_locked -= potentialSellOrderQty
                     } else {
 
-                        var taxAmount : Int = (potentialSellOrderQty * potentialSellOrder.price*0.02).roundToInt()
+                        var taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
                         Users[potentialSellOrder.createdBy]!!.wallet_free +=(potentialSellOrderQty*potentialSellOrderQty-taxAmount)
                         platformData.feesEarned+=taxAmount
@@ -80,21 +81,25 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     BuyOrders.add(potentialBuyOrder)
                     break
                 }
-                else{
-                    val potentialBuyOrderQty = min(qty-filledQty, potentialBuyOrder.qty-potentialBuyOrder.filledQty)
+                else {
+                    val potentialBuyOrderQty = min(qty - filledQty, potentialBuyOrder.qty - potentialBuyOrder.filledQty)
 
                     filled.add(PriceQtyPair(price, potentialBuyOrderQty))
                     filledQty += potentialBuyOrderQty
-                    Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
 
-                    if(id.second==1)
-                         Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
+
+                    if (id.second == 1){
+                        Users[createdBy]!!.perf_locked -= potentialBuyOrderQty
+                    Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
+                    }
                     else {
 
-                        var taxAmount : Int = (potentialBuyOrderQty * price*0.02).roundToInt()
+                        var taxAmount : Int = ceil(potentialBuyOrderQty * price*0.02).toInt()
 
                         Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
                         platformData.feesEarned+=taxAmount
+                        Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
+
                     }
 
 
