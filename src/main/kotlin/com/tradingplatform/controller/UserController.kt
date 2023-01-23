@@ -23,9 +23,11 @@ import kotlin.math.roundToInt
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
+   
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
         var fieldLists= arrayListOf<String>("userName","firstName","lastName","phoneNumber","email")
+
         //Check for empty fields
         for (field in fieldLists) {
             if (UserValidation().isFieldExists(field, body)) {
@@ -46,13 +48,14 @@ class UserController {
         val phoneNumber = body["phoneNumber"].stringValue
         val firstName = body["firstName"].stringValue
         val lastName = body["lastName"].stringValue
-        val email=body["email"].stringValue
+        val email = body["email"].stringValue
+
         //Validations on all
-        UserValidation().isEmailValid(errorList,email)
-        UserValidation().isPhoneValid(errorList,phoneNumber)
-        UserValidation().isUserNameValid(errorList,userName)
-        UserValidation().isNameValid(errorList,firstName)
-        UserValidation().isNameValid(errorList,lastName)
+        UserValidation().isEmailValid(errorList, email)
+        UserValidation().isPhoneValid(errorList, phoneNumber)
+        UserValidation().isUserNameValid(errorList, userName)
+        UserValidation().isNameValid(errorList, firstName)
+        UserValidation().isNameValid(errorList, lastName)
 
 
         if (errorList.isNotEmpty()) {
@@ -60,15 +63,16 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        Users[userName] = User(firstName = firstName,
+        Users[userName] = User(
+            firstName = firstName,
             lastName = lastName,
             userName = userName,
-            email =email.lowercase(),
+            email = email.lowercase(),
             phoneNumber = phoneNumber
         )
 
-        var okResponse=HashMap<String,String>()
-        okResponse.put("message","User Registered successfully")
+        var okResponse = HashMap<String, String>()
+        okResponse.put("message", "User Registered successfully")
 
         return HttpResponse.ok(okResponse)
     }
@@ -77,9 +81,8 @@ class UserController {
     fun createOrder(@Body body: JsonObject, @QueryValue user_name: String): Any {
         val response = mutableMapOf<String, Any>();
         val errorList = arrayListOf<String>()
-        var fieldLists= arrayListOf<String>("quantity","type","price")
-        for (field in fieldLists)
-        {
+        var fieldLists = arrayListOf<String>("quantity", "type", "price")
+        for (field in fieldLists) {
             if (OrderValidation().isFieldExists(field, body)) {
                 errorList.add("Enter the $field field")
             }
@@ -101,8 +104,6 @@ class UserController {
         }
         if (errorList.isNotEmpty())
             return HttpResponse.badRequest(response)
-
-
 
         var quantity = body["quantity"].intValue
         val type = body["type"].stringValue
