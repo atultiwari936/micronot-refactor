@@ -23,10 +23,10 @@ import kotlin.math.roundToInt
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
-   
+
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
-        var fieldLists= arrayListOf<String>("userName","firstName","lastName","phoneNumber","email")
+        var fieldLists = arrayListOf<String>("userName", "firstName", "lastName", "phoneNumber", "email")
 
         //Check for empty fields
         for (field in fieldLists) {
@@ -35,7 +35,7 @@ class UserController {
                 errorResponse["error"] = errorList
             }
         }
-        
+
         if (errorList.isNotEmpty()) {
             return HttpResponse.badRequest(errorResponse)
         }
@@ -44,14 +44,14 @@ class UserController {
         val phoneNumber = body["phoneNumber"].stringValue
         val firstName = body["firstName"].stringValue
         val lastName = body["lastName"].stringValue
-        val email=body["email"].stringValue
+        val email = body["email"].stringValue
 
         //Validations on all
-        UserValidation().isEmailValid(errorList,email)
-        UserValidation().isPhoneValid(errorList,phoneNumber)
-        UserValidation().isUserNameValid(errorList,userName)
-        UserValidation().isNameValid(errorList,firstName)
-        UserValidation().isNameValid(errorList,lastName)
+        UserValidation().isEmailValid(errorList, email)
+        UserValidation().isPhoneValid(errorList, phoneNumber)
+        UserValidation().isUserNameValid(errorList, userName)
+        UserValidation().isNameValid(errorList, firstName)
+        UserValidation().isNameValid(errorList, lastName)
 
 
         if (errorList.isNotEmpty()) {
@@ -59,15 +59,16 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        Users[userName] = User(firstName = firstName,
+        Users[userName] = User(
+            firstName = firstName,
             lastName = lastName,
             userName = userName,
-            email =email.lowercase(),
+            email = email.lowercase(),
             phoneNumber = phoneNumber
         )
 
-        var okResponse=HashMap<String,String>()
-        okResponse.put("message","User Registered successfully")
+        var okResponse = HashMap<String, String>()
+        okResponse.put("message", "User Registered successfully")
 
         return HttpResponse.ok(okResponse)
     }
@@ -76,27 +77,24 @@ class UserController {
     fun createOrder(@Body body: JsonObject, @QueryValue user_name: String): Any {
         val response = mutableMapOf<String, Any>();
         val errorList = arrayListOf<String>()
-        var fieldLists= arrayListOf<String>("quantity","type","price")
-        for (field in fieldLists)
-        {
+        var fieldLists = arrayListOf<String>("quantity", "type", "price")
+        for (field in fieldLists) {
             if (OrderValidation().isFieldExists(field, body)) {
                 errorList.add("Enter the $field field")
             }
         }
 
-        if (body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+        if (body["quantity"] == null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt() != body["quantity"].intValue) {
             errorList.add("Quantity is not valid")
             response["error"] = errorList
         }
-        if (body["price"]==null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt()!=body["price"].intValue) {
+        if (body["price"] == null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt() != body["price"].intValue) {
             errorList.add("Price is not valid")
 
         }
-        if (body["type"]==null || !body["type"].isString || (body["type"].stringValue!="SELL" && body["type"].stringValue!="BUY")) {
+        if (body["type"] == null || !body["type"].isString || (body["type"].stringValue != "SELL" && body["type"].stringValue != "BUY")) {
             errorList.add("Order Type is not valid")
         }
-
-
 
 
         var quantity = body["quantity"].intValue
@@ -108,36 +106,33 @@ class UserController {
 
 
         OrderValidation().isValidAmount(errorList, quantity, "quantity")
-        OrderValidation().isValidAmount(errorList, price,"price")
+        OrderValidation().isValidAmount(errorList, price, "price")
         OrderValidation().isValidEsopType(errorList, esopType)
 
 
-        if (errorList.isNotEmpty())
-        {
-            response["error"]=errorList
+        if (errorList.isNotEmpty()) {
+            response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
 
 
-        var newOrder : Order? = null
-        if(Users.containsKey(user_name)){
+        var newOrder: Order? = null
+        if (Users.containsKey(user_name)) {
             val user = Users[user_name]!!
-            if(type == "BUY"){
-                if(quantity * price > user.wallet_free) errorList.add("Insufficient funds in wallet")
-                else{
+            if (type == "BUY") {
+                if (quantity * price > user.wallet_free) errorList.add("Insufficient funds in wallet")
+                else {
                     user.wallet_free -= quantity * price
                     user.wallet_locked += quantity * price
                     newOrder = Order("BUY", quantity, price, user_name, esopNormal)
                     user.orders.add(newOrder.id)
 
                 }
-            }
-            else if(type == "SELL"){
+            } else if (type == "SELL") {
                 if (esopType == "PERFORMANCE") {
                     if (quantity > user.perf_free) {
                         errorList.add("Insufficient Performance ESOPs in inventory")
-                    }
-                    else {
+                    } else {
                         user.perf_locked += quantity
                         user.perf_free -= quantity
                         newOrder = Order("SELL", quantity, price, user_name, esopPerformance)
@@ -147,18 +142,16 @@ class UserController {
                 } else if (esopType == "NORMAL") {
                     if (quantity > user.inventory_free) {
                         errorList.add("Insufficient Normal ESOPs in inventory")
-                    }
-                    else {
+                    } else {
                         user.inventory_locked += quantity
                         user.inventory_free -= quantity
                         newOrder = Order("SELL", quantity, price, user_name, esopNormal)
                         user.orders.add(newOrder.id)
                     }
                 }
-            }
-            else
+            } else
                 errorList.add("Invalid type given")
-        } else  {
+        } else {
             errorList.add("User doesn't exist")
         }
 
@@ -176,12 +169,12 @@ class UserController {
     }
 
     @Get(value = "/{userName}/accountInformation")
-    fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
+    fun getAccountInformation(@PathVariable(name = "userName") userName: String): MutableHttpResponse<out Any?>? {
 
-        var response = mutableMapOf<String,Any>();
+        var response = mutableMapOf<String, Any>();
         var errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList,userName)
-        if(errorList.isNotEmpty()){
+        UserValidation().isUserExists(errorList, userName)
+        if (errorList.isNotEmpty()) {
             response["error"] = errorList;
 
             return HttpResponse.badRequest(response)
@@ -211,61 +204,59 @@ class UserController {
     }
 
     @Post(value = "/{userName}/inventory")
-    fun addInventory(@Body body: JsonObject, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
+    fun addInventory(
+        @Body body: JsonObject,
+        @PathVariable(name = "userName") userName: String
+    ): MutableHttpResponse<out Any>? {
         val response = mutableMapOf<String, MutableList<String>>();
         var errorList = arrayListOf<String>()
         var msg = mutableListOf<String>()
-        UserValidation().isUserExists(errorList,userName)
-        if(body==null)
-        {
+        UserValidation().isUserExists(errorList, userName)
+        if (body == null) {
             errorList.add("Empty Body")
         }
-        if(body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+        if (body["quantity"] == null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt() != body["quantity"].intValue) {
 
             errorList.add("Quantity data type is invalid")
-        }
-        else
-            OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)
+        } else
+            OrderValidation().isValidQuantity(errorList, body["quantity"].intValue)
 
-        if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
-        {
+        if (body["type"] != null && (!body["type"].isString || body["type"].stringValue != "PERFORMANCE")) {
             errorList.add("ESOP type is invalid")
         }
 
         response["error"] = errorList;
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        if (errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        if(body["type"]!=null) {
+        if (body["type"] != null) {
             Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body["quantity"].intValue)!!
             msg.add("${body["quantity"].intValue} Performance ESOPs added to account")
-        }
-        else {
+        } else {
             Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body["quantity"].intValue)!!
             msg.add("${body["quantity"].intValue} ESOPs added to account")
         }
-        response["message"]=msg
+        response["message"] = msg
         return HttpResponse.ok(response)
     }
 
 
     @Post(value = "/{userName}/wallet")
-    fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
+    fun addWallet(@Body body: JsonObject, @PathVariable userName: String): MutableHttpResponse<out Any>? {
         println(body.toString())
-        val responseMap= HashMap<String,String>()
+        val responseMap = HashMap<String, String>()
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
-        UserValidation().isUserExists(errorList,userName)
-        if(body==null)
-        {
+        UserValidation().isUserExists(errorList, userName)
+        if (body == null) {
             errorList.add("Empty Body")
         }
-        if(body["amount"]==null || !body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue))
+        if (body["amount"] == null || !body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt() != body["amount"].intValue))
             errorList.add("Amount data type is invalid")
         else
-            OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
+            OrderValidation().isValidAmount(errorList, body["amount"].intValue, "amount")
 
         response["error"] = errorList;
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        if (errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
         Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body["amount"].intValue)!!
         responseMap["message"] = "${body["amount"].intValue} added to account"
@@ -276,100 +267,108 @@ class UserController {
     fun getOrder(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
-        var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
-        UserValidation().isUserExists(errorList,userName)
-        if(errorList.isNotEmpty())
-        {
-            response["error"]=errorList
+        var userOrders: HashMap<Int, OrderHistory> = hashMapOf()
+        UserValidation().isUserExists(errorList, userName)
+        if (errorList.isNotEmpty()) {
+            response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
         val userOrderIds = Users[userName]!!.orders
-        for(orderId in userOrderIds){
+        for (orderId in userOrderIds) {
 
-            if(CompletedOrders.containsKey(orderId)){
+            if (CompletedOrders.containsKey(orderId)) {
 
-                if(!userOrders.contains(orderId.first))
-                {
-                    var currOrder=CompletedOrders[orderId];
-                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    partialOrderHistory.id=currOrder.id.first
-                    partialOrderHistory.status="filled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
-                    partialOrderHistory.filledQty=currOrder.filledQty
-                    partialOrderHistory.filled=currOrder.filled
+                if (!userOrders.contains(orderId.first)) {
+                    var currOrder = CompletedOrders[orderId];
+                    var partialOrderHistory: OrderHistory = OrderHistory(
+                        currOrder!!.type,
+                        currOrder.qty,
+                        currOrder.price,
+                        currOrder.createdBy,
+                        currOrder.esop_type
+                    )
+                    partialOrderHistory.id = currOrder.id.first
+                    partialOrderHistory.status = "filled"
+                    partialOrderHistory.timestamp = currOrder.timestamp
+                    partialOrderHistory.filledQty = currOrder.filledQty
+                    partialOrderHistory.filled = currOrder.filled
 
-                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
-                }
-                else
-                {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=CompletedOrders[orderId];
+                    userOrders.put(partialOrderHistory.id, partialOrderHistory)
+                } else {
+                    var currOrder = userOrders[orderId.first]
+                    var exisitingOrder = CompletedOrders[orderId];
 
-                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filledQty += exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
 
-        for(order in BuyOrders){
-            if(userName == order.createdBy){
+        for (order in BuyOrders) {
+            if (userName == order.createdBy) {
 
-                var orderId=order.id
+                var orderId = order.id
 
 
 
-                if(!userOrders.contains(orderId.first))
-                {
-                    var currOrder=order
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    partialOrderHistory.id=currOrder.id.first
-                    partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
-                    partialOrderHistory.filledQty=currOrder.filledQty
-                    partialOrderHistory.filled=currOrder.filled
+                if (!userOrders.contains(orderId.first)) {
+                    var currOrder = order
+                    var partialOrderHistory: OrderHistory = OrderHistory(
+                        currOrder!!.type,
+                        currOrder.qty,
+                        currOrder.price,
+                        currOrder.createdBy,
+                        currOrder.esop_type
+                    )
+                    partialOrderHistory.id = currOrder.id.first
+                    partialOrderHistory.status = "unfilled"
+                    partialOrderHistory.timestamp = currOrder.timestamp
+                    partialOrderHistory.filledQty = currOrder.filledQty
+                    partialOrderHistory.filled = currOrder.filled
 
                     userOrders[partialOrderHistory.id] = partialOrderHistory
-                }
-                else
-                {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=order
+                } else {
+                    var currOrder = userOrders[orderId.first]
+                    var exisitingOrder = order
 
-                    if(currOrder!!.status=="filled")
-                        currOrder.status="partially filled"
+                    if (currOrder!!.status == "filled")
+                        currOrder.status = "partially filled"
 
-                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filledQty += exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
             }
         }
 
-        for(order in SellOrders){
-            if(userName == order.createdBy){
-                var orderId=order.id
+        for (order in SellOrders) {
+            if (userName == order.createdBy) {
+                var orderId = order.id
 
-                if(!userOrders.contains(orderId.first))
-                {
-                    var currOrder=order
+                if (!userOrders.contains(orderId.first)) {
+                    var currOrder = order
 
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
-                    partialOrderHistory.id=currOrder.id.first
-                    partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
-                    partialOrderHistory.filledQty=currOrder.filledQty
-                    partialOrderHistory.filled=currOrder.filled
+                    var partialOrderHistory: OrderHistory = OrderHistory(
+                        currOrder!!.type,
+                        currOrder.qty,
+                        currOrder.price,
+                        currOrder.createdBy,
+                        currOrder.esop_type
+                    )
+                    partialOrderHistory.id = currOrder.id.first
+                    partialOrderHistory.status = "unfilled"
+                    partialOrderHistory.timestamp = currOrder.timestamp
+                    partialOrderHistory.filledQty = currOrder.filledQty
+                    partialOrderHistory.filled = currOrder.filled
 
                     userOrders[partialOrderHistory.id] = partialOrderHistory
-                }
-                else
-                {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=order
+                } else {
+                    var currOrder = userOrders[orderId.first]
+                    var exisitingOrder = order
 
-                    if(currOrder!!.status=="filled")
-                        currOrder.status="partially filled"
+                    if (currOrder!!.status == "filled")
+                        currOrder.status = "partially filled"
 
-                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
+                    currOrder!!.filledQty += exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
 
@@ -380,8 +379,6 @@ class UserController {
         return HttpResponse.ok(listOfOrders)
 
     }
-
-
 }
 
 
@@ -392,4 +389,5 @@ data class OrderHistory constructor(val type : String, val qty: Int, val price :
     var timestamp = System.currentTimeMillis()
     var filledQty = 0
 }
+
 
