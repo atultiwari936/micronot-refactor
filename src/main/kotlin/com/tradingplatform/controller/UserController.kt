@@ -5,22 +5,21 @@ import UserValidation
 import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Body
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import com.tradingplatform.model.Users
 import io.micronaut.http.MutableHttpResponse
-import io.micronaut.http.annotation.PathVariable
-import io.micronaut.http.annotation.QueryValue
+import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import java.lang.Integer.min
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 
 @Controller("/user")
 class UserController {
+    var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
+
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
    
@@ -305,7 +304,7 @@ class UserController {
                     var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="filled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.timestamp=LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp),ZoneOffset.UTC).format(format).toString()
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
@@ -335,7 +334,7 @@ class UserController {
                     var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.timestamp=LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp),ZoneOffset.UTC).format(format).toString()
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
@@ -366,7 +365,7 @@ class UserController {
                     var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp=currOrder.timestamp
+                    partialOrderHistory.timestamp=LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp),ZoneOffset.UTC).format(format).toString()
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
@@ -400,7 +399,7 @@ data class OrderHistory constructor(val type : String, val qty: Int, val price :
     var status = "unfilled"
     var filled = ArrayList<PriceQtyPair>()
     var id: Int = 0
-    var timestamp = System.currentTimeMillis()
+    lateinit var timestamp:String
     var filledQty = 0
 }
 
