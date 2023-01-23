@@ -48,7 +48,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
                         var taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
-                        Users[potentialSellOrder.createdBy]!!.wallet_free +=(potentialSellOrderQty*potentialSellOrderQty-taxAmount)
+                        Users[potentialSellOrder.createdBy]!!.wallet_free +=(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
                         platformData.feesEarned+=taxAmount
                         Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     }
