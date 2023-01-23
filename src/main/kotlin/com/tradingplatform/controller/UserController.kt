@@ -23,15 +23,17 @@ import kotlin.math.roundToInt
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
-   
         val errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>();
         var fieldLists= arrayListOf<String>("userName","firstName","lastName","phoneNumber","email")
-
         //Check for empty fields
         for (field in fieldLists) {
             if (UserValidation().isFieldExists(field, body)) {
                 errorList.add("Enter the $field field")
+                errorResponse["error"] = errorList
+            }else if(body[field]==null||!body[field].isString)
+            {
+                errorList.add("$field Data type not in valid format")
                 errorResponse["error"] = errorList
             }
         }
@@ -45,7 +47,6 @@ class UserController {
         val firstName = body["firstName"].stringValue
         val lastName = body["lastName"].stringValue
         val email=body["email"].stringValue
-
         //Validations on all
         UserValidation().isEmailValid(errorList,email)
         UserValidation().isPhoneValid(errorList,phoneNumber)
@@ -83,19 +84,23 @@ class UserController {
                 errorList.add("Enter the $field field")
             }
         }
-
+        if (errorList.isNotEmpty())
+            return HttpResponse.badRequest(response)
         if (body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
             errorList.add("Quantity is not valid")
             response["error"] = errorList
         }
         if (body["price"]==null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt()!=body["price"].intValue) {
             errorList.add("Price is not valid")
+            response["error"] = errorList
 
         }
         if (body["type"]==null || !body["type"].isString || (body["type"].stringValue!="SELL" && body["type"].stringValue!="BUY")) {
             errorList.add("Order Type is not valid")
+            response["error"] = errorList
         }
-
+        if (errorList.isNotEmpty())
+            return HttpResponse.badRequest(response)
 
 
 
@@ -215,12 +220,15 @@ class UserController {
         val response = mutableMapOf<String, MutableList<String>>();
         var errorList = arrayListOf<String>()
         var msg = mutableListOf<String>()
+
         UserValidation().isUserExists(errorList,userName)
-        if(body==null)
+        if(body["quantity"]==null)
         {
-            errorList.add("Empty Body")
+            errorList.add("Quantity is missing")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
         }
-        if(body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+        if( !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
 
             errorList.add("Quantity data type is invalid")
         }
@@ -250,16 +258,18 @@ class UserController {
 
     @Post(value = "/{userName}/wallet")
     fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
-        println(body.toString())
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
         UserValidation().isUserExists(errorList,userName)
-        if(body==null)
+
+        if(body["amount"]==null)
         {
-            errorList.add("Empty Body")
+            errorList.add("Enter amount field")
+            response["error"] = errorList;
+            return HttpResponse.badRequest(response)
         }
-        if(body["amount"]==null || !body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue))
+        if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue))
             errorList.add("Amount data type is invalid")
         else
             OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")

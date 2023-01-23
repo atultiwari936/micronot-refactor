@@ -140,7 +140,7 @@ class OrderValidation {
     {
         if(amount<=0 || amount>2147483640)
         {
-            list.add("Enter a valid Quantity in range of Int")
+            list.add("Quantity is not valid. Minimum quantity is 1 and maximum is 2147483640")
         }
     }
     
