@@ -24,7 +24,7 @@ class WalletController {
 
         if(body["amount"]==null)
         {
-            errorList.add("Enter amount field")
+            errorList.add("Enter the amount field")
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
         }

@@ -113,10 +113,14 @@ class UserValidation {
 class OrderValidation {
     fun isValidAmount(list:ArrayList<String>,amount :Int, fieldName: String):Boolean
     {
-        if(amount<=0 || amount>2147483640)
+        if(amount<=0)
         {
-            list.add("Enter a valid $fieldName")
+            list.add("Enter a positive $fieldName")
             return false
+        }
+        else if(amount>2147483640)
+        {
+            list.add("Enter $fieldName between 0 to 2147483640")
         }
         return true
 
@@ -132,7 +136,7 @@ class OrderValidation {
             return true
         }
 
-        list.add("ESOP type is not valid")
+        list.add("ESOP type is not valid (Allowed : PERFORMANCE and NON-PERFORMANCE)")
         return false
     }
 
@@ -148,7 +152,7 @@ class OrderValidation {
     {
        var array = arrayListOf<String>("PERFORMANCE")
         if(type !in array)
-            list.add("Invalid Order type")
+            list.add("Invalid Order type (Allowed : PERFORMANCE)")
 
     }
 }

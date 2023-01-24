@@ -135,6 +135,8 @@ class OrderController {
 
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName:String): Any {
+        if(body==null)
+            HttpResponse.badRequest("No  body")
         val response = mutableMapOf<String, Any>();
         val errorList = arrayListOf<String>()
         var fieldLists = arrayListOf<String>("quantity", "type", "price")
@@ -143,23 +145,24 @@ class OrderController {
                 errorList.add("Enter the $field field")
             }
         }
-        if (errorList.isNotEmpty())
+        if (errorList.isNotEmpty()) {
+            response["error"]=errorList
             return HttpResponse.badRequest(response)
+        }
         if (body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
             errorList.add("Quantity is not valid")
-            response["error"] = errorList
         }
         if (body["price"]==null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt()!=body["price"].intValue) {
             errorList.add("Price is not valid")
-            response["error"] = errorList
 
         }
         if (body["type"]==null || !body["type"].isString || (body["type"].stringValue!="SELL" && body["type"].stringValue!="BUY")) {
             errorList.add("Order Type is not valid")
-            response["error"] = errorList
         }
-        if (errorList.isNotEmpty())
+        if (errorList.isNotEmpty()) {
+            response["error"]=errorList
             return HttpResponse.badRequest(response)
+        }
 
         var quantity = body["quantity"].intValue
         val type = body["type"].stringValue
@@ -237,4 +240,6 @@ class OrderController {
         return HttpResponse.ok(response)
     }
 
+
+    
 }
