@@ -109,20 +109,5 @@ class UserController {
 
         return HttpResponse.ok(response)
     }
-
-
-
-
-
-
-}
-
-
-data class OrderHistory constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
-    var status = "unfilled"
-    var filled = ArrayList<PriceQtyPair>()
-    var id: Int = 0
-    lateinit var timestamp:String
-    var filledQty = 0
 }
 
