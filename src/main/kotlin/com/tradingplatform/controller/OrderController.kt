@@ -18,16 +18,19 @@ class OrderController {
     var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
 
     @Get(value = "/{userName}/order")
-    fun getOrder(@QueryValue userName: String): Any? {
+    fun orderHistory(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
         var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
+
         UserValidation().isUserExists(errorList,userName)
+
         if(errorList.isNotEmpty())
         {
             response["error"]=errorList
             return HttpResponse.badRequest(response)
         }
+
         val userOrderIds = Users[userName]!!.orders
         for(orderId in userOrderIds){
 

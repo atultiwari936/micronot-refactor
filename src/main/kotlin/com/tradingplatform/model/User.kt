@@ -11,3 +11,9 @@ data class User constructor(val firstName : String, val lastName : String, val p
 }
 
 val Users = HashMap<String,User>()
+
+data class Register(val firstName: String,
+                    val lastName: String,
+                    val email: String,
+                    val userName: String,
+                    val phoneNumber: String)

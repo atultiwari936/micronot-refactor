@@ -1,4 +1,5 @@
 package com.tradingplatform.model
+import java.math.BigInteger
 import kotlin.math.min
 import java.util.PriorityQueue
 import kotlin.math.ceil
@@ -49,7 +50,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         var taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
                         Users[potentialSellOrder.createdBy]!!.wallet_free +=(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
-                        platformData.feesEarned+=taxAmount
+                        platformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     }
 
@@ -97,7 +98,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         var taxAmount : Int = ceil(potentialBuyOrderQty * price*0.02).toInt()
 
                         Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
-                        platformData.feesEarned+=taxAmount
+                        platformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
 
                     }
@@ -148,4 +149,27 @@ val SellOrders = PriorityQueue<Order>{order1 : Order, order2 : Order ->
     }
 
 val CompletedOrders = HashMap<Pair<Int,Int>, Order>()
+
+data class OrderInput(
+    var quantity: Int,
+    val type: String,
+    val price: Int,
+    val esopType: String="NORMAL")
+
+data class OrderOutput(val orderId: String,val quantity: Int,
+                       val type: String,
+                       val price: Int)
+
+data class OrderHistory constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
+    var status = "unfilled"
+    var filled = ArrayList<PriceQtyPair>()
+    var id: Int = 0
+    lateinit var timestamp:String
+    var filledQty = 0
+}
+
+data class QuantityInput(val quantity: Int,var type:String="NORMAL")
+{
+    var esopType=0
+}
 
