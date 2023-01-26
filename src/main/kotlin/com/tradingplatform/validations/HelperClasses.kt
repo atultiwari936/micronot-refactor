@@ -4,7 +4,7 @@ import io.micronaut.json.tree.JsonObject
 import java.util.Objects
 
 class UserValidation {
-    val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+[-]*[a-zA-z0-9]+[.])+[a-zA-Z]{2,}"
+    val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
     val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
     val nameRegex="^[a-zA-z ]*\$"
     val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
@@ -19,14 +19,19 @@ class UserValidation {
     }
     fun isEmailValid (list :ArrayList<String>,email:String)
     {
+        var delimiter = "@"
+        val parts = email.split(delimiter)
         if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
         {
             list.add("Invalid Email format")
         }
+        else if(parts[0].length>64||parts[1].length>255)
+        {
+            list.add("max email length exceeded")
+        }
         else if(!isEmailUnique(email))
         {
             list.add("Email Id already registered")
-
         }
     }
 
