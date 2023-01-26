@@ -84,9 +84,6 @@ class OrderController {
                     var currOrder=userOrders[orderId.first]
                     var exisitingOrder=order
 
-                    if(currOrder!!.status=="filled")
-                        currOrder.status="partially filled"
-
                     currOrder!!.filledQty+=exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
@@ -116,9 +113,6 @@ class OrderController {
                     var currOrder=userOrders[orderId.first]
                     var exisitingOrder=order
 
-                    if(currOrder!!.status=="filled")
-                        currOrder.status="partially filled"
-
                     currOrder!!.filledQty+=exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
                 }
@@ -127,6 +121,39 @@ class OrderController {
         }
 
         var listOfOrders: MutableCollection<OrderHistory> = userOrders.values
+
+
+        for(individualOrder  in listOfOrders)
+        {
+            if(individualOrder.qty==individualOrder.filledQty)
+                individualOrder.status="filled"
+            else if(individualOrder.filledQty==0)
+                individualOrder.status="unfilled"
+            else
+                individualOrder.status="partially filled"
+
+
+            var transOfIndividualOrder=individualOrder.filled
+
+            var transAtSamePrice : ArrayList<PriceQtyPair> = arrayListOf()
+            var transIndexAtPrice : MutableMap<Int,Int> = mutableMapOf()
+
+            for(transPriceAndQty in transOfIndividualOrder)
+            {
+                if(transIndexAtPrice.contains(transPriceAndQty.price)){
+                    transAtSamePrice[transIndexAtPrice[transPriceAndQty.price]!!].quantity+=transPriceAndQty.quantity
+                }
+                else{
+                    transAtSamePrice.add(transPriceAndQty)
+                    transIndexAtPrice.put(transPriceAndQty.price,transAtSamePrice.size-1)
+                }
+            }
+
+            individualOrder.filled=transAtSamePrice
+        }
+
+
+
         return HttpResponse.ok(listOfOrders)
 
     }

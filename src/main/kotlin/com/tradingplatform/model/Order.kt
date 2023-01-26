@@ -9,7 +9,7 @@ import kotlin.time.Duration.Companion.seconds
 val esopNormal = 0
 val esopPerformance = 1
 
-data class PriceQtyPair(val price: Int, val quantity: Int) //Utility class to make the response json pretty
+data class PriceQtyPair(val price: Int, var quantity: Int) //Utility class to make the response json pretty
 
 data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esop_type: Int) {
     var status = "unfilled"
