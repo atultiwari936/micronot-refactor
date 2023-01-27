@@ -65,9 +65,38 @@ class OrderTest {
         Assertions.assertEquals(8,user2.inventory_free)
         Assertions.assertEquals(0,user2.inventory_locked)
         Assertions.assertEquals(0,user2.wallet_locked)
+    }
+
+
+    @Test
+    fun `Check sell order satisfied partially by buy order`() {
+        //Arrange
+        var user1= User("","","","","atul_1")
+        Users[user1.userName]=user1
+        user1.inventory_free=11
+
+        var user2= User("","","","","atul_2")
+        Users[user2.userName]=user2
+        user2.wallet_free=100
+
+
+        //Act
+        var objectOfOrderController=OrderController()
+        var sellOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"SELL",10,20)
+        var buyOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"BUY",5,20)
 
 
 
+        //Assert
+        Assertions.assertEquals(98,user1.wallet_free)
+        Assertions.assertEquals(1,user1.inventory_free)
+        Assertions.assertEquals(5,user1.inventory_locked)
+        Assertions.assertEquals(0,user1.wallet_locked)
+
+        Assertions.assertEquals(0,user2.wallet_free)
+        Assertions.assertEquals(5,user2.inventory_free)
+        Assertions.assertEquals(0,user2.inventory_locked)
+        Assertions.assertEquals(0,user2.wallet_locked)
     }
 
 
@@ -91,6 +120,5 @@ class OrderTest {
         Assertions.assertEquals(0,user1.wallet_locked)
         Assertions.assertEquals(30,user1.perf_free)
         Assertions.assertEquals(10,user1.perf_locked)
-
     }
 }
