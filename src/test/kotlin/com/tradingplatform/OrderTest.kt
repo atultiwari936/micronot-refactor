@@ -6,6 +6,7 @@ import io.micronaut.json.tree.JsonObject
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.Objects
 
 class OrderTest {
 
@@ -27,10 +28,45 @@ class OrderTest {
 
         //Act
 
+
         var x=OrderController().orderHandler(user1.userName,"BUY",1,20,"NORMAL")
 
         //Assert
         Assertions.assertEquals(80,user1.wallet_free)
+
+        //Assert
+        Assertions.assertEquals(80,user1.wallet_free)
+    }
+
+    @Test
+    fun `Check buy order satisfied partially by sell order`() {
+        //Arrange
+        var user1= User("","","","","atul_1")
+        Users[user1.userName]=user1
+        user1.wallet_free=100
+
+        var user2= User("","","","","atul_2")
+        Users[user2.userName]=user2
+        user2.inventory_free=10
+
+        //Act
+        var objectOfOrderController=OrderController()
+        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+
+
+        //Assert
+        Assertions.assertEquals(0,user1.wallet_free)
+        Assertions.assertEquals(2,user1.inventory_free)
+        Assertions.assertEquals(0,user1.inventory_locked)
+        Assertions.assertEquals(60,user1.wallet_locked)
+
+        Assertions.assertEquals(39,user2.wallet_free)
+        Assertions.assertEquals(8,user2.inventory_free)
+        Assertions.assertEquals(0,user2.inventory_locked)
+        Assertions.assertEquals(0,user2.wallet_locked)
+
+
 
     }
 
