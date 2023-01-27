@@ -121,4 +121,63 @@ class OrderTest {
         Assertions.assertEquals(30,user1.perf_free)
         Assertions.assertEquals(10,user1.perf_locked)
     }
+
+    @Test
+    fun `Check buy order after a sell order`(){
+        //Arrange
+        var user1= User("","","","","atul_1")
+        Users[user1.userName]=user1
+        user1.wallet_free=100
+        var user2= User("","","","","atul_2")
+        Users[user2.userName]=user2
+        user2.inventory_free=10
+        var objectOfOrderController=OrderController()
+        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+
+
+        //Act
+        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+
+
+        //Assert
+        Assertions.assertEquals(0,user1.wallet_free)
+        Assertions.assertEquals(2,user1.inventory_free)
+        Assertions.assertEquals(0,user1.inventory_locked)
+        Assertions.assertEquals(60,user1.wallet_locked)
+
+        Assertions.assertEquals(39,user2.wallet_free)
+        Assertions.assertEquals(8,user2.inventory_free)
+        Assertions.assertEquals(0,user2.inventory_locked)
+        Assertions.assertEquals(0,user2.wallet_locked)
+    }
+
+    @Test
+    fun `Check sell order after a buy order`(){
+        //Arrange
+        var user1= User("","","","","atul_1")
+        Users[user1.userName]=user1
+        user1.wallet_free=100
+        var user2= User("","","","","atul_2")
+        Users[user2.userName]=user2
+        user2.inventory_free=10
+        var objectOfOrderController=OrderController()
+        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+
+
+        //Act
+        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+
+
+        //Assert
+        Assertions.assertEquals(0,user1.wallet_free)
+        Assertions.assertEquals(2,user1.inventory_free)
+        Assertions.assertEquals(0,user1.inventory_locked)
+        Assertions.assertEquals(60,user1.wallet_locked)
+
+        Assertions.assertEquals(39,user2.wallet_free)
+        Assertions.assertEquals(8,user2.inventory_free)
+        Assertions.assertEquals(0,user2.inventory_locked)
+        Assertions.assertEquals(0,user2.wallet_locked)
+    }
 }
+
