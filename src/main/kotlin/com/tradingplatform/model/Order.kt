@@ -37,6 +37,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     Users[createdBy]!!.wallet_locked -= potentialSellOrderQty * price
                     Users[createdBy]!!.wallet_free += potentialSellOrderQty * (price - potentialSellOrder.price)
                     Users[createdBy]!!.inventory_free += potentialSellOrderQty
+                    Users[createdBy]!!.pendingCreditEsop -= potentialSellOrderQty
 
 
                     potentialSellOrder.filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
@@ -53,6 +54,8 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         platformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[potentialSellOrder.createdBy]!!.inventory_locked -= potentialSellOrderQty
                     }
+
+
 
 
                     if(potentialSellOrder.filledQty < potentialSellOrder.qty && potentialSellOrder.filledQty > 0) potentialSellOrder.status = "partially filled"
@@ -92,12 +95,14 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                     if (id.second == 1){
                         Users[createdBy]!!.perf_locked -= potentialBuyOrderQty
                     Users[createdBy]!!.wallet_free += potentialBuyOrderQty * price
+                        Users[createdBy]!!.pendingCreditAmount -= potentialBuyOrderQty * price
                     }
                     else {
 
                         var taxAmount : Int = ceil(potentialBuyOrderQty * price*0.02).toInt()
 
                         Users[createdBy]!!.wallet_free += (potentialBuyOrderQty * price - taxAmount)
+                        Users[createdBy]!!.pendingCreditAmount -= (potentialBuyOrderQty * price - taxAmount)
                         platformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[createdBy]!!.inventory_locked -= potentialBuyOrderQty
 
