@@ -123,9 +123,9 @@ class OrderValidation {
             list.add("Enter a positive $fieldName")
             return false
         }
-        else if(amount>2147483640)
+        else if(amount>10000000)
         {
-            list.add("Enter $fieldName between 0 to 2147483640")
+            list.add("Enter $fieldName between 0 to 10000000")
             return false
         }
         return true
@@ -148,9 +148,9 @@ class OrderValidation {
 
     fun isValidQuantity(list:ArrayList<String>,amount :Int)
     {
-        if(amount<=0 || amount>2147483640)
+        if(amount<=0 || amount>10000000)
         {
-            list.add("Quantity is not valid. Minimum quantity is 1 and maximum is 2147483640")
+            list.add("Quantity is not valid. Range between 1 and 10000000")
         }
     }
     
