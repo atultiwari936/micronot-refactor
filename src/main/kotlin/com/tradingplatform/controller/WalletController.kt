@@ -28,8 +28,9 @@ class WalletController {
             response["error"] = errorList;
             return HttpResponse.badRequest(response)
         }
-        if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue))
+        if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue)) {
             errorList.add("Amount data type is invalid")
+        }
         else
             OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
 
