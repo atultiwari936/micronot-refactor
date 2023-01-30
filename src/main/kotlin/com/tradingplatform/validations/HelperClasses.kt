@@ -1,7 +1,6 @@
+import com.tradingplatform.model.User
 import com.tradingplatform.model.Users
-import io.micronaut.json.tree.JsonNode
 import io.micronaut.json.tree.JsonObject
-import java.util.Objects
 
 class UserValidation {
     val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
@@ -127,9 +126,10 @@ class OrderValidation {
             list.add("Enter a positive $fieldName")
             return false
         }
-        else if(amount>2147483640)
+        else if(amount>10000000)
         {
-            list.add("Enter $fieldName between 0 to 2147483640")
+
+            list.add("Enter $fieldName between 0 to 10000000")
             return false
         }
         return true
@@ -150,12 +150,14 @@ class OrderValidation {
         return false
     }
 
-    fun isValidQuantity(list:ArrayList<String>,amount :Int)
+    fun isValidQuantity(list:ArrayList<String>,amount :Int):Boolean
     {
-        if(amount<=0 || amount>2147483640)
+        if(amount<=0 || amount>10000000)
         {
-            list.add("Quantity is not valid. Minimum quantity is 1 and maximum is 2147483640")
+            list.add("Quantity is not valid. Range between 1 and 10000000")
+            return false
         }
+        return true
     }
 
     fun isValidOrderType(list:ArrayList<String>,type:String)
@@ -165,6 +167,24 @@ class OrderValidation {
             list.add("Invalid Order type (Allowed : PERFORMANCE)")
 
     }
+
+    fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
+        if(user.wallet_free + user.wallet_locked+ user.pendingCreditAmount + amount > 10000000){
+            list.add("Cannot place the order. Wallet amount will exceed 10000000")
+            return false
+        }
+        return true
+    }
+
+    fun isInventoryWithinLimit(list:ArrayList<String>,user:User, inventory:Int):Boolean{
+
+        if(user.inventory_free + user.inventory_locked+ user.perf_free + user.perf_locked + user.pendingCreditEsop +inventory > 10000000){
+            list.add("Cannot place the order. Total Inventory will exceed 10000000")
+            return false
+        }
+        return true
+    }
+
 }
 
 class DataTypeValidation{

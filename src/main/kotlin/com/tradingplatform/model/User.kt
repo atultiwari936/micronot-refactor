@@ -7,6 +7,8 @@ data class User constructor(val firstName : String, val lastName : String, val p
     var inventory_locked = 0
     var perf_free = 0
     var perf_locked = 0
+    var pendingCreditAmount = 0
+    var pendingCreditEsop = 0
     val orders = arrayListOf<Pair<Int,Int>>()
 }
 
