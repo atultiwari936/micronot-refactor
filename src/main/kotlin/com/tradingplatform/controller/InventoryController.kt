@@ -38,7 +38,7 @@ class InventoryController {
 
         if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
         {
-            errorList.add("ESOP type is invalid")
+            errorList.add("ESOP type is invalid ( Allowed value : PERFORMANCE and NON-PERFORMANCE)")
         }
 
         response["error"] = errorList;
