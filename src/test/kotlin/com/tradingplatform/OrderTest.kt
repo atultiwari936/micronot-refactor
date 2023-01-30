@@ -52,11 +52,6 @@ class OrderTest {
 
 
         Assertions.assertEquals(1000,user1.wallet_free)
-
-
-
-
-
     }
 
 
