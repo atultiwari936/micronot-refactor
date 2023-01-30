@@ -42,17 +42,29 @@ class InventoryController {
         }
 
         response["error"] = errorList;
+
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        if(body["type"]!=null) {
-            Users[userName]?.perf_free = Users[userName]?.perf_free?.plus(body["quantity"].intValue)!!
-            msg.add("${body["quantity"].intValue} Performance ESOPs added to account")
-        }
-        else {
-            Users[userName]?.inventory_free = Users[userName]?.inventory_free?.plus(body["quantity"].intValue)!!
-            msg.add("${body["quantity"].intValue} ESOPs added to account")
-        }
+        if(body["type"]!=null)
+            msg.add(addESOPStoUserInventory(userName,"PERFORMANCE",body["quantity"].intValue))
+        else
+            msg.add(addESOPStoUserInventory(userName,"NORMAL",body["quantity"].intValue))
+
         response["message"]=msg
         return HttpResponse.ok(response)
     }
+
+    fun addESOPStoUserInventory(userName: String,type:String,esopQuantity:Int) : String
+    {
+        if(type=="PERFORMANCE")
+        {
+            Users[userName]!!.perf_free+=esopQuantity
+            return ("${esopQuantity} Performance ESOPs added to account")
+        }
+
+        Users[userName]!!.inventory_free+=esopQuantity
+        return ("${esopQuantity} ESOPs added to account")
+    }
+
+
 }

@@ -1,5 +1,8 @@
 package com.tradingplatform
 
+import UserValidation
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.OrderController
 import com.tradingplatform.controller.UserController
 import com.tradingplatform.controller.WalletController
@@ -22,6 +25,25 @@ class OrderTest {
 
 
     @Test
+    fun `Check if user data is valid`(){
+        var objectOfUserController=UserController()
+        var user1= User("vv","vv","+918888888888","tt@gmail.com","atul_1")
+
+
+        var errorList=objectOfUserController.checkIfInputDataIsValid(user1)
+
+
+
+        Assertions.assertEquals(0,errorList.size)
+
+    }
+
+
+    
+
+
+
+    @Test
     fun `Check for User added to userList`(){
 
         //Arrange
@@ -34,9 +56,8 @@ class OrderTest {
 
         //Assert
         Assertions.assertEquals(true, Users.containsKey(user1.userName))
-        if (userObject != null) {
-            Assertions.assertEquals(true,"tt@gmail.com" in userObject.email)
-        }
+        Assertions.assertEquals(true,"tt@gmail.com" in userObject!!.email)
+
     }
 
     @Test
@@ -52,11 +73,38 @@ class OrderTest {
 
 
         Assertions.assertEquals(1000,user1.wallet_free)
+    }
 
 
+    @Test
+    fun `check whether Performance esops added to inventory`(){
+
+        var user1= User("","","","tt@gmail.com","atul_1")
+        val objectOfUserController=UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfInventoryController=InventoryController()
 
 
+        objectOfInventoryController.addESOPStoUserInventory(user1.userName,"PERFORMANCE",100)
 
+
+        Assertions.assertEquals(100,user1.perf_free)
+    }
+
+
+    @Test
+    fun `check whether Normal esops added to inventory`(){
+
+        var user1= User("","","","tt@gmail.com","atul_1")
+        val objectOfUserController=UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfInventoryController=InventoryController()
+
+
+        objectOfInventoryController.addESOPStoUserInventory(user1.userName,"NORMAL",100)
+
+
+        Assertions.assertEquals(100,user1.inventory_free)
     }
 
 
