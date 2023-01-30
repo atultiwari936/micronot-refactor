@@ -33,8 +33,9 @@ class InventoryController {
 
             errorList.add("Quantity data type is invalid")
         }
-        else
-            OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)
+        else if(OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)){
+            OrderValidation().isInventoryWithinLimit(errorList, Users[userName]!!,body["quantity"].intValue)
+        }
 
         if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
         {

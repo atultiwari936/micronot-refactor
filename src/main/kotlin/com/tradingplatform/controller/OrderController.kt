@@ -220,9 +220,11 @@ class OrderController {
             val user = Users[userName]!!
             if(type == "BUY"){
                 if(quantity * price > user.wallet_free) errorList.add("Insufficient funds in wallet")
+                else if(!OrderValidation().isInventoryWithinLimit(errorList,user,quantity))
                 else{
                     user.wallet_free -= quantity * price
                     user.wallet_locked += quantity * price
+                    user.pendingCreditEsop += quantity
                     newOrder = Order("BUY", quantity, price, userName, esopNormal)
                     user.orders.add(newOrder.id)
 
@@ -232,10 +234,11 @@ class OrderController {
                 if (esopType == "PERFORMANCE") {
                     if (quantity > user.perf_free) {
                         errorList.add("Insufficient Performance ESOPs in inventory")
-                    }
+                    }else if(!OrderValidation().isWalletAmountWithinLimit(errorList,user,price*quantity.toDouble()))
                     else {
                         user.perf_locked += quantity
                         user.perf_free -= quantity
+                        user.pendingCreditAmount += quantity*price
                         newOrder = Order("SELL", quantity, price, userName, esopPerformance)
                         user.orders.add(newOrder.id)
 
@@ -243,10 +246,11 @@ class OrderController {
                 } else if (esopType == "NORMAL") {
                     if (quantity > user.inventory_free) {
                         errorList.add("Insufficient Normal ESOPs in inventory")
-                    }
+                    }else if(!OrderValidation().isWalletAmountWithinLimit(errorList,user,price*quantity*0.98))
                     else {
                         user.inventory_locked += quantity
                         user.inventory_free -= quantity
+                        user.pendingCreditAmount += (quantity*price*0.98).toInt()
                         newOrder = Order("SELL", quantity, price, userName, esopNormal)
                         user.orders.add(newOrder.id)
                     }

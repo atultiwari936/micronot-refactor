@@ -20,21 +20,24 @@ class WalletController {
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>();
+        response["error"] = errorList;
         UserValidation().isUserExists(errorList,userName)
 
+
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
         if(body["amount"]==null)
         {
             errorList.add("Enter the amount field")
-            response["error"] = errorList;
+
             return HttpResponse.badRequest(response)
         }
         if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue)) {
             errorList.add("Amount data type is invalid")
         }
-        else
-            OrderValidation().isValidAmount(errorList,body["amount"].intValue, "amount")
+        else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue, "amount"))
+            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].doubleValue)
 
-        response["error"] = errorList;
+
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
         addAmountToWallet(userName,body["amount"].intValue)
