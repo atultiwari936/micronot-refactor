@@ -209,8 +209,12 @@ class OrderController {
             response["error"]=errorList
             return HttpResponse.badRequest(response)
         }
+            return  HttpResponse.ok(orderHandler(userName,type,quantity,price,esopType))
+        }
 
-
+        fun orderHandler(userName: String,type:String,quantity:Int,price:Int,esopType:String="NORMAL"): Any {
+            val errorList = arrayListOf<String>()
+            val response = mutableMapOf<String, Any>();
         var newOrder : Order? = null
         if(Users.containsKey(userName)){
             val user = Users[userName]!!
@@ -268,7 +272,7 @@ class OrderController {
         response["type"] = type
         response["price"] = price
 
-        return HttpResponse.ok(response)
+        return response
     }
 
 

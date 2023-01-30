@@ -45,17 +45,19 @@ class UserValidation {
         return true
     }
 
-    fun isPhoneValid (list :ArrayList<String>,phoneNumber:String)
+    fun isPhoneValid (list :ArrayList<String>,phoneNumber:String): Boolean
     {
         if(!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber)))
         {
             list.add("Invalid PhoneNumber format")
+            return false
         }
         else if(!isPhoneUnique(phoneNumber))
         {
             list.add("Phone Number already registered")
-
+            return false
         }
+        return true
     }
 
     private fun isPhoneUnique(phoneNumber: String):Boolean
@@ -71,17 +73,19 @@ class UserValidation {
 
 
 
-    fun isUserNameValid (list :ArrayList<String>,userName:String)
+    fun isUserNameValid (list :ArrayList<String>,userName:String): Boolean
     {
         if(!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName)))
         {
             list.add("Invalid Username format")
+            return false
         }
         else if(!isUnameUnique(userName))
         {
             list.add("Username already registered")
-
+            return false
         }
+        return true
     }
 
     private fun isUnameUnique(userName: String):Boolean
@@ -155,7 +159,7 @@ class OrderValidation {
         }
         return true
     }
-    
+
     fun isValidOrderType(list:ArrayList<String>,type:String)
     {
        var array = arrayListOf<String>("PERFORMANCE")
