@@ -60,7 +60,8 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        Users[userName] = User(
+
+        val userData = User(
             firstName = firstName,
             lastName = lastName,
             userName = userName,
@@ -68,10 +69,19 @@ class UserController {
             phoneNumber = phoneNumber
         )
 
+        addUser(userData)
+
+
         var okResponse = HashMap<String, String>()
         okResponse.put("message", "User Registered successfully")
 
         return HttpResponse.ok(okResponse)
+    }
+
+
+    fun addUser(userData : User)
+    {
+        Users[userData.userName]=userData
     }
 
 

@@ -1,6 +1,8 @@
 package com.tradingplatform
 
 import com.tradingplatform.controller.OrderController
+import com.tradingplatform.controller.UserController
+import com.tradingplatform.controller.WalletController
 import com.tradingplatform.model.*
 import io.micronaut.json.tree.JsonObject
 import org.junit.jupiter.api.Assertions
@@ -16,6 +18,45 @@ class OrderTest {
         BuyOrders.clear()
         SellOrders.clear()
         Users.clear()
+    }
+
+
+    @Test
+    fun `Check for User added to userList`(){
+
+        //Arrange
+        var user1= User("","","","tt@gmail.com","atul_1")
+        val objectOfUserController=UserController()
+        objectOfUserController.addUser(user1)
+
+        //Actions
+        val userObject: User? = Users[user1.userName]
+
+        //Assert
+        Assertions.assertEquals(true, Users.containsKey(user1.userName))
+        if (userObject != null) {
+            Assertions.assertEquals(true,"tt@gmail.com" in userObject.email)
+        }
+    }
+
+    @Test
+    fun `check whether amount added to wallet`(){
+
+        var user1= User("","","","tt@gmail.com","atul_1")
+        val objectOfUserController=UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfWalletController=WalletController()
+
+
+        objectOfWalletController.addAmountToWallet(user1.userName,1000)
+
+
+        Assertions.assertEquals(1000,user1.wallet_free)
+
+
+
+
+
     }
 
 

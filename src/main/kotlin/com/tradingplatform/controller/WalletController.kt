@@ -36,9 +36,15 @@ class WalletController {
         response["error"] = errorList;
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(body["amount"].intValue)!!
+        addAmountToWallet(userName,body["amount"].intValue)
         responseMap["message"] = "${body["amount"].intValue} added to account"
         return HttpResponse.ok(responseMap)
     }
+
+    fun addAmountToWallet(userName: String,amount:Int)
+    {
+        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(amount)!!
+    }
+
 
 }
