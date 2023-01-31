@@ -264,7 +264,7 @@ class OrderController {
 
         response["error"] = errorList
         if (errorList.isNotEmpty()) {
-            return HttpResponse.badRequest(response)
+            return response
         }
 
         response["orderId"] = newOrder!!.id.first

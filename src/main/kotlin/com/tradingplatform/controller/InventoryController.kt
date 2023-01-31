@@ -23,6 +23,10 @@ class InventoryController {
         var msg = mutableListOf<String>()
 
         UserValidation().isUserExists(errorList,userName)
+
+        response["error"] = errorList;
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+
         if(body["quantity"]==null)
         {
             errorList.add("Quantity is missing")
