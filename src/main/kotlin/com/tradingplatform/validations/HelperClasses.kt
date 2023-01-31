@@ -8,11 +8,11 @@ const val maxLimitForWallet = 100
 const val maxLimitForInventory = 100
 
 class UserValidation {
-    private val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
+    private val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
     private val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
     private val nameRegex="^[a-zA-z ]*\$"
     private val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
-    fun isUserExists(list: ArrayList<String>,userName: String?)
+    fun isUserExists(list: ArrayList<String>,userName: String)
     {
         if(userName==null) {
             list.add("Username is Null")
@@ -21,22 +21,37 @@ class UserValidation {
         if(!Users.containsKey(userName))
             list.add("User does not exists")
     }
-    fun isEmailValid (list :ArrayList<String>,email:String)
+    fun isEmailValid (list :ArrayList<String>,email:String):Boolean
     {
-        val delimiter = "@"
-        val parts = email.split(delimiter)
+        val parts = email.split("@")
+        val subDomains=parts[1].split(".")
         if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
         {
-            list.add("Invalid Email format")
+            list.add("Invalid email format")
         }
         else if(parts[0].length>64||parts[1].length>255)
         {
-            list.add("max email length exceeded")
+            list.add("Max email length exceeded")
+        }
+        for(subdomain in subDomains)
+        {
+            if(subdomain.length>63)
+            {
+                list.add("Max subdomain length exceeded")
+                break
+            }
+        }
+        if (subDomains[subDomains.size-1].length<2)
+        {
+            list.add("Last subdomain length should be greater than 2")
         }
         else if(!isEmailUnique(email))
         {
-            list.add("Email Id already registered")
+            list.add("Email is already registered")
         }
+        if(list.isEmpty())
+            return true
+        return false
     }
 
     private fun isEmailUnique(email: String):Boolean

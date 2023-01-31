@@ -7,13 +7,28 @@ import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class UserTest {
     @BeforeEach
     fun `Tear down existing data`() {
         Users.clear()
     }
+    @ParameterizedTest
+    @ValueSource(strings = ["check@sahaj..ai.com","check@sahaj--ai.com","check@sahaj.911emergency.com",
+        "check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com",
+        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665",
+        "check@sahaj.a"
+    ])
+    fun `Test should check if the user email is valid`(email :String)
+    {
+        val errorList = arrayListOf<String>()
 
+        val actualResponse = UserValidation().isEmailValid(errorList,email )
+
+        Assertions.assertEquals(false, actualResponse)
+    }
     @Test
     fun `Test should return invalid username if username has unwanted special characters`() {
         val sampleUserName = ".."
