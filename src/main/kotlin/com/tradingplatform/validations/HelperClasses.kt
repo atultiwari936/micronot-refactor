@@ -14,7 +14,7 @@ class UserValidation {
             return
         }
         if(!Users.containsKey(userName))
-            list.add("User Not Exist")
+            list.add("User does not exists")
     }
     fun isEmailValid (list :ArrayList<String>,email:String)
     {
