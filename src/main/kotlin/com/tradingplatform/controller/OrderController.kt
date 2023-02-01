@@ -15,13 +15,13 @@ import kotlin.math.roundToInt
 
 @Controller(value="/user")
 class OrderController {
-    var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
+    private var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
 
     @Get(value = "/{userName}/order")
     fun orderHistory(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, MutableList<String>>();
-        var userOrders: HashMap<Int,OrderHistory> = hashMapOf()
+        val response = mutableMapOf<String, MutableList<String>>()
+        val userOrders: HashMap<Int,OrderHistory> = hashMapOf()
 
         UserValidation().isUserExists(errorList,userName)
 
@@ -38,8 +38,8 @@ class OrderController {
 
                 if(!userOrders.contains(orderId.first))
                 {
-                    var currOrder= CompletedOrders[orderId];
-                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
+                    val currOrder= CompletedOrders[orderId]
+                    val partialOrderHistory = OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="filled"
                     partialOrderHistory.timestamp=
@@ -47,12 +47,12 @@ class OrderController {
                     partialOrderHistory.filledQty=currOrder.filledQty
                     partialOrderHistory.filled=currOrder.filled
 
-                    userOrders.put(partialOrderHistory.id,partialOrderHistory)
+                    userOrders[partialOrderHistory.id] = partialOrderHistory
                 }
                 else
                 {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder= CompletedOrders[orderId];
+                    val currOrder=userOrders[orderId.first]
+                    val exisitingOrder= CompletedOrders[orderId]
 
                     currOrder!!.filledQty+=exisitingOrder!!.filledQty
                     currOrder!!.filled.addAll(exisitingOrder.filled)
@@ -63,64 +63,73 @@ class OrderController {
         for(order in BuyOrders){
             if(userName == order.createdBy){
 
-                var orderId=order.id
+                val orderId=order.id
 
 
 
-                if(!userOrders.contains(orderId.first))
-                {
-                    var currOrder=order
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
-                    partialOrderHistory.id=currOrder.id.first
-                    partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp= LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp), ZoneOffset.UTC).format(format).toString()
-                    partialOrderHistory.filledQty=currOrder.filledQty
-                    partialOrderHistory.filled=currOrder.filled
+                if(!userOrders.contains(orderId.first)) {
+                    val partialOrderHistory = OrderHistory(
+                        order!!.type,
+                        order.qty,
+                        order.price,
+                        order.createdBy,
+                        order.esopType
+                    )
+                    partialOrderHistory.id = order.id.first
+                    partialOrderHistory.status = "unfilled"
+                    partialOrderHistory.timestamp =
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
+                            .toString()
+                    partialOrderHistory.filledQty = order.filledQty
+                    partialOrderHistory.filled = order.filled
 
                     userOrders[partialOrderHistory.id] = partialOrderHistory
                 }
                 else
                 {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=order
+                    val currOrder=userOrders[orderId.first]
 
-                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
-                    currOrder!!.filled.addAll(exisitingOrder.filled)
+                    currOrder!!.filledQty += order!!.filledQty
+                    currOrder!!.filled.addAll(order.filled)
                 }
             }
         }
 
         for(order in SellOrders){
             if(userName == order.createdBy){
-                var orderId=order.id
+                val orderId=order.id
 
-                if(!userOrders.contains(orderId.first))
-                {
-                    var currOrder=order
+                if(!userOrders.contains(orderId.first)) {
 
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
-                    partialOrderHistory.id=currOrder.id.first
-                    partialOrderHistory.status="unfilled"
-                    partialOrderHistory.timestamp=
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp), ZoneOffset.UTC).format(format).toString()
-                    partialOrderHistory.filledQty=currOrder.filledQty
-                    partialOrderHistory.filled=currOrder.filled
+                    val partialOrderHistory = OrderHistory(
+                        order!!.type,
+                        order.qty,
+                        order.price,
+                        order.createdBy,
+                        order.esopType
+                    )
+                    partialOrderHistory.id = order.id.first
+                    partialOrderHistory.status = "unfilled"
+                    partialOrderHistory.timestamp =
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
+                            .toString()
+                    partialOrderHistory.filledQty = order.filledQty
+                    partialOrderHistory.filled = order.filled
 
                     userOrders[partialOrderHistory.id] = partialOrderHistory
                 }
                 else
                 {
-                    var currOrder=userOrders[orderId.first]
-                    var exisitingOrder=order
+                    val currOrder=userOrders[orderId.first]
 
-                    currOrder!!.filledQty+=exisitingOrder!!.filledQty
-                    currOrder!!.filled.addAll(exisitingOrder.filled)
+                    currOrder!!.filledQty += order!!.filledQty
+                    currOrder!!.filled.addAll(order.filled)
                 }
 
             }
         }
 
-        var listOfOrders: MutableCollection<OrderHistory> = userOrders.values
+        val listOfOrders: MutableCollection<OrderHistory> = userOrders.values
 
 
         for(individualOrder  in listOfOrders)
@@ -133,10 +142,10 @@ class OrderController {
                 individualOrder.status="partially filled"
 
 
-            var transOfIndividualOrder=individualOrder.filled
+            val transOfIndividualOrder=individualOrder.filled
 
-            var transAtSamePrice : ArrayList<PriceQtyPair> = arrayListOf()
-            var transIndexAtPrice : MutableMap<Int,Int> = mutableMapOf()
+            val transAtSamePrice : ArrayList<PriceQtyPair> = arrayListOf()
+            val transIndexAtPrice : MutableMap<Int,Int> = mutableMapOf()
 
             for(transPriceAndQty in transOfIndividualOrder)
             {
@@ -145,7 +154,7 @@ class OrderController {
                 }
                 else{
                     transAtSamePrice.add(transPriceAndQty)
-                    transIndexAtPrice.put(transPriceAndQty.price,transAtSamePrice.size-1)
+                    transIndexAtPrice[transPriceAndQty.price] = transAtSamePrice.size-1
                 }
             }
 
@@ -162,11 +171,9 @@ class OrderController {
 
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName:String): Any {
-        if(body==null)
-            HttpResponse.badRequest("No  body")
-        val response = mutableMapOf<String, Any>();
+        val response = mutableMapOf<String, Any>()
         val errorList = arrayListOf<String>()
-        var fieldLists = arrayListOf<String>("quantity", "type", "price")
+        val fieldLists = arrayListOf("quantity", "type", "price")
         for (field in fieldLists) {
             if (OrderValidation().isFieldExists(field, body)) {
                 errorList.add("Enter the $field field")
@@ -176,14 +183,18 @@ class OrderController {
             response["error"]=errorList
             return HttpResponse.badRequest(response)
         }
-        if (body["quantity"]==null || !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+
+        val quantity2 = body["quantity"]
+        if (quantity2 ==null || !quantity2.isNumber || ceil(quantity2.doubleValue).roundToInt()!= quantity2.intValue) {
             errorList.add("Quantity is not valid")
         }
-        if (body["price"]==null || !body["price"].isNumber || ceil(body["price"].doubleValue).roundToInt()!=body["price"].intValue) {
+        val price2 = body["price"]
+        if (price2 ==null || !price2.isNumber || ceil(price2.doubleValue).roundToInt()!= price2.intValue) {
             errorList.add("Price is not valid")
 
         }
-        if (body["type"]==null || !body["type"].isString || (body["type"].stringValue!="SELL" && body["type"].stringValue!="BUY")) {
+        val type2 = body["type"]
+        if (type2 ==null || !type2.isString || (type2.stringValue!="SELL" && type2.stringValue!="BUY")) {
             errorList.add("Order Type is not valid")
         }
         if (errorList.isNotEmpty()) {
@@ -191,10 +202,11 @@ class OrderController {
             return HttpResponse.badRequest(response)
         }
 
-        var quantity = body["quantity"].intValue
-        val type = body["type"].stringValue
-        var price = body["price"].intValue
-        val esopType = if (body["esopType"] !== null) body["esopType"].stringValue else "NORMAL"
+        val quantity = quantity2!!.intValue
+        val type = type2!!.stringValue
+        val price = price2!!.intValue
+        val esopType2 = body["esopType"]
+        val esopType = if (esopType2 !== null) esopType2.stringValue else "NORMAL"
 
 
 
@@ -214,8 +226,8 @@ class OrderController {
 
         fun orderHandler(userName: String,type:String,quantity:Int,price:Int,esopType:String="NORMAL"): Any {
             val errorList = arrayListOf<String>()
-            val response = mutableMapOf<String, Any>();
-        var newOrder : Order? = null
+            val response = mutableMapOf<String, Any>()
+            var newOrder : Order? = null
         if(Users.containsKey(userName)){
             val user = Users[userName]!!
             if(type == "BUY"){
