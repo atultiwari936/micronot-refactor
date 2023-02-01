@@ -19,35 +19,35 @@ class WalletController {
     fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, MutableList<String>>();
-        response["error"] = errorList;
+        val response = mutableMapOf<String, MutableList<String>>()
+        response["error"] = errorList
         UserValidation().isUserExists(errorList,userName)
 
-
+        val amount =body["amount"]
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        if(body["amount"]==null)
+        if(amount==null)
         {
             errorList.add("Enter the amount field")
 
             return HttpResponse.badRequest(response)
         }
-        if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue)) {
+        if(!amount.isNumber || (ceil(amount.doubleValue).roundToInt()!=amount.intValue)) {
             errorList.add("Amount data type is invalid")
         }
-        else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue, "amount"))
-            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].doubleValue)
+        else if(OrderValidation().isValidAmount(errorList, amount.intValue, "amount"))
+            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, amount.doubleValue)
 
 
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        addAmountToWallet(userName,body["amount"].intValue)
-        responseMap["message"] = "${body["amount"].intValue} added to account"
+        addAmountToWallet(userName,amount.intValue)
+        responseMap["message"] = "${amount.intValue} added to account"
         return HttpResponse.ok(responseMap)
     }
 
     fun addAmountToWallet(userName: String,amount:Int)
     {
-        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(amount)!!
+        Users[userName]?.walletFree = Users[userName]?.walletFree?.plus(amount)!!
     }
 
 

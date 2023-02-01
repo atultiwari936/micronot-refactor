@@ -231,11 +231,11 @@ class OrderController {
         if(Users.containsKey(userName)){
             val user = Users[userName]!!
             if(type == "BUY"){
-                if(quantity * price > user.wallet_free) errorList.add("Insufficient funds in wallet")
+                if(quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
                 else if(!OrderValidation().isInventoryWithinLimit(errorList,user,quantity))
                 else{
-                    user.wallet_free -= quantity * price
-                    user.wallet_locked += quantity * price
+                    user.walletFree -= quantity * price
+                    user.walletLocked += quantity * price
                     user.pendingCreditEsop += quantity
                     newOrder = Order("BUY", quantity, price, userName, esopNormal)
                     user.orders.add(newOrder.id)
@@ -244,24 +244,24 @@ class OrderController {
             }
             else if(type == "SELL"){
                 if (esopType == "PERFORMANCE") {
-                    if (quantity > user.perf_free) {
+                    if (quantity > user.perfFree) {
                         errorList.add("Insufficient Performance ESOPs in inventory")
                     }else if(!OrderValidation().isWalletAmountWithinLimit(errorList,user,price*quantity.toDouble()))
                     else {
-                        user.perf_locked += quantity
-                        user.perf_free -= quantity
+                        user.perfLocked += quantity
+                        user.perfFree -= quantity
                         user.pendingCreditAmount += quantity*price
                         newOrder = Order("SELL", quantity, price, userName, esopPerformance)
                         user.orders.add(newOrder.id)
 
                     }
                 } else if (esopType == "NORMAL") {
-                    if (quantity > user.inventory_free) {
+                    if (quantity > user.inventoryFree) {
                         errorList.add("Insufficient Normal ESOPs in inventory")
                     }else if(!OrderValidation().isWalletAmountWithinLimit(errorList,user,price*quantity*0.98))
                     else {
-                        user.inventory_locked += quantity
-                        user.inventory_free -= quantity
+                        user.inventoryLocked += quantity
+                        user.inventoryFree -= quantity
                         user.pendingCreditAmount += (quantity*price*0.98).toInt()
                         newOrder = Order("SELL", quantity, price, userName, esopNormal)
                         user.orders.add(newOrder.id)

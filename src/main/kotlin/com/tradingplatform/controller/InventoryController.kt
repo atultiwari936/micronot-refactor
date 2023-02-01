@@ -65,12 +65,13 @@ class InventoryController {
     {
         if(type=="PERFORMANCE")
         {
-            Users[userName]!!.perf_free+=esopQuantity
-            return ("$esopQuantity Performance ESOPs added to account")
+            Users[userName]!!.perfFree+=esopQuantity
+            return ("${esopQuantity} Performance ESOPs added to account")
         }
 
-        Users[userName]!!.inventory_free+=esopQuantity
-        return ("$esopQuantity ESOPs added to account")
+        Users[userName]!!.inventoryFree+=esopQuantity
+        return ("${esopQuantity} ESOPs added to account")
+
     }
 
     fun checkIfUserExist(userName: String): ArrayList<String> {

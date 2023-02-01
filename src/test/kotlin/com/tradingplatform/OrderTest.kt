@@ -68,7 +68,7 @@ class OrderTest {
         objectOfWalletController.addAmountToWallet(user1.userName,1000)
 
 
-        Assertions.assertEquals(1000,user1.wallet_free)
+        Assertions.assertEquals(1000,user1.walletFree)
     }
 
 
@@ -84,7 +84,7 @@ class OrderTest {
         objectOfInventoryController.addESOPStoUserInventory(user1.userName,"PERFORMANCE",100)
 
 
-        Assertions.assertEquals(100,user1.perf_free)
+        Assertions.assertEquals(100,user1.perfFree)
     }
 
 
@@ -100,7 +100,7 @@ class OrderTest {
         objectOfInventoryController.addESOPStoUserInventory(user1.userName,"NORMAL",100)
 
 
-        Assertions.assertEquals(100,user1.inventory_free)
+        Assertions.assertEquals(100,user1.inventoryFree)
     }
 
 
@@ -109,7 +109,7 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","atul_1")
         Users[user1.userName]=user1
-        user1.wallet_free=100
+        user1.walletFree=100
 
         //Act
 
@@ -117,10 +117,10 @@ class OrderTest {
         var x=OrderController().orderHandler(user1.userName,"BUY",1,20,"NORMAL")
 
         //Assert
-        Assertions.assertEquals(80,user1.wallet_free)
+        Assertions.assertEquals(80,user1.walletFree)
 
         //Assert
-        Assertions.assertEquals(80,user1.wallet_free)
+        Assertions.assertEquals(80,user1.walletFree)
     }
 
     @Test
@@ -128,11 +128,11 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","atul_1")
         Users[user1.userName]=user1
-        user1.wallet_free=100
+        user1.walletFree=100
 
         var user2= User("","","","","atul_2")
         Users[user2.userName]=user2
-        user2.inventory_free=10
+        user2.inventoryFree=10
 
         //Act
         var objectOfOrderController=OrderController()
@@ -141,15 +141,15 @@ class OrderTest {
 
 
         //Assert
-        Assertions.assertEquals(0,user1.wallet_free)
-        Assertions.assertEquals(2,user1.inventory_free)
-        Assertions.assertEquals(0,user1.inventory_locked)
-        Assertions.assertEquals(60,user1.wallet_locked)
+        Assertions.assertEquals(0,user1.walletFree)
+        Assertions.assertEquals(2,user1.inventoryFree)
+        Assertions.assertEquals(0,user1.inventoryLocked)
+        Assertions.assertEquals(60,user1.walletLocked)
 
-        Assertions.assertEquals(39,user2.wallet_free)
-        Assertions.assertEquals(8,user2.inventory_free)
-        Assertions.assertEquals(0,user2.inventory_locked)
-        Assertions.assertEquals(0,user2.wallet_locked)
+        Assertions.assertEquals(39,user2.walletFree)
+        Assertions.assertEquals(8,user2.inventoryFree)
+        Assertions.assertEquals(0,user2.inventoryLocked)
+        Assertions.assertEquals(0,user2.walletLocked)
     }
 
 
@@ -158,11 +158,11 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","atul_1")
         Users[user1.userName]=user1
-        user1.inventory_free=11
+        user1.inventoryFree=11
 
         var user2= User("","","","","atul_2")
         Users[user2.userName]=user2
-        user2.wallet_free=100
+        user2.walletFree=100
 
 
         //Act
@@ -173,15 +173,15 @@ class OrderTest {
 
 
         //Assert
-        Assertions.assertEquals(98,user1.wallet_free)
-        Assertions.assertEquals(1,user1.inventory_free)
-        Assertions.assertEquals(5,user1.inventory_locked)
-        Assertions.assertEquals(0,user1.wallet_locked)
+        Assertions.assertEquals(98,user1.walletFree)
+        Assertions.assertEquals(1,user1.inventoryFree)
+        Assertions.assertEquals(5,user1.inventoryLocked)
+        Assertions.assertEquals(0,user1.walletLocked)
 
-        Assertions.assertEquals(0,user2.wallet_free)
-        Assertions.assertEquals(5,user2.inventory_free)
-        Assertions.assertEquals(0,user2.inventory_locked)
-        Assertions.assertEquals(0,user2.wallet_locked)
+        Assertions.assertEquals(0,user2.walletFree)
+        Assertions.assertEquals(5,user2.inventoryFree)
+        Assertions.assertEquals(0,user2.inventoryLocked)
+        Assertions.assertEquals(0,user2.walletLocked)
     }
 
 
@@ -190,21 +190,21 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","kcsp")
         Users[user1.userName]=user1
-        user1.inventory_free=40
-        user1.perf_free=40
-        user1.wallet_free=100
+        user1.inventoryFree=40
+        user1.perfFree=40
+        user1.walletFree=100
 
         //Act
 
         var x=OrderController().orderHandler(user1.userName,"SELL",10,100,"PERFORMANCE")
 
         //Assert
-        Assertions.assertEquals(40,user1.inventory_free)
-        Assertions.assertEquals(0,user1.inventory_locked)
-        Assertions.assertEquals(100,user1.wallet_free)
-        Assertions.assertEquals(0,user1.wallet_locked)
-        Assertions.assertEquals(30,user1.perf_free)
-        Assertions.assertEquals(10,user1.perf_locked)
+        Assertions.assertEquals(40,user1.inventoryFree)
+        Assertions.assertEquals(0,user1.inventoryLocked)
+        Assertions.assertEquals(100,user1.walletFree)
+        Assertions.assertEquals(0,user1.walletLocked)
+        Assertions.assertEquals(30,user1.perfFree)
+        Assertions.assertEquals(10,user1.perfLocked)
     }
 
     @Test
@@ -212,10 +212,10 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","atul_1")
         Users[user1.userName]=user1
-        user1.wallet_free=100
+        user1.walletFree=100
         var user2= User("","","","","atul_2")
         Users[user2.userName]=user2
-        user2.inventory_free=10
+        user2.inventoryFree=10
         var objectOfOrderController=OrderController()
         var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
 
@@ -225,15 +225,15 @@ class OrderTest {
 
 
         //Assert
-        Assertions.assertEquals(0,user1.wallet_free)
-        Assertions.assertEquals(2,user1.inventory_free)
-        Assertions.assertEquals(0,user1.inventory_locked)
-        Assertions.assertEquals(60,user1.wallet_locked)
+        Assertions.assertEquals(0,user1.walletFree)
+        Assertions.assertEquals(2,user1.inventoryFree)
+        Assertions.assertEquals(0,user1.inventoryLocked)
+        Assertions.assertEquals(60,user1.walletLocked)
 
-        Assertions.assertEquals(39,user2.wallet_free)
-        Assertions.assertEquals(8,user2.inventory_free)
-        Assertions.assertEquals(0,user2.inventory_locked)
-        Assertions.assertEquals(0,user2.wallet_locked)
+        Assertions.assertEquals(39,user2.walletFree)
+        Assertions.assertEquals(8,user2.inventoryFree)
+        Assertions.assertEquals(0,user2.inventoryLocked)
+        Assertions.assertEquals(0,user2.walletLocked)
     }
 
     @Test
@@ -241,10 +241,10 @@ class OrderTest {
         //Arrange
         var user1= User("","","","","atul_1")
         Users[user1.userName]=user1
-        user1.wallet_free=100
+        user1.walletFree=100
         var user2= User("","","","","atul_2")
         Users[user2.userName]=user2
-        user2.inventory_free=10
+        user2.inventoryFree=10
         var objectOfOrderController=OrderController()
         var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
 
@@ -254,15 +254,15 @@ class OrderTest {
 
 
         //Assert
-        Assertions.assertEquals(0,user1.wallet_free)
-        Assertions.assertEquals(2,user1.inventory_free)
-        Assertions.assertEquals(0,user1.inventory_locked)
-        Assertions.assertEquals(60,user1.wallet_locked)
+        Assertions.assertEquals(0,user1.walletFree)
+        Assertions.assertEquals(2,user1.inventoryFree)
+        Assertions.assertEquals(0,user1.inventoryLocked)
+        Assertions.assertEquals(60,user1.walletLocked)
 
-        Assertions.assertEquals(39,user2.wallet_free)
-        Assertions.assertEquals(8,user2.inventory_free)
-        Assertions.assertEquals(0,user2.inventory_locked)
-        Assertions.assertEquals(0,user2.wallet_locked)
+        Assertions.assertEquals(39,user2.walletFree)
+        Assertions.assertEquals(8,user2.inventoryFree)
+        Assertions.assertEquals(0,user2.inventoryLocked)
+        Assertions.assertEquals(0,user2.walletLocked)
     }
 }
 
