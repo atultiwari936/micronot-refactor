@@ -39,7 +39,7 @@ class OrderController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder= CompletedOrders[orderId];
-                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    var partialOrderHistory: OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="filled"
                     partialOrderHistory.timestamp=
@@ -70,7 +70,7 @@ class OrderController {
                 if(!userOrders.contains(orderId.first))
                 {
                     var currOrder=order
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="unfilled"
                     partialOrderHistory.timestamp= LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp), ZoneOffset.UTC).format(format).toString()
@@ -98,7 +98,7 @@ class OrderController {
                 {
                     var currOrder=order
 
-                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esop_type)
+                    var partialOrderHistory : OrderHistory= OrderHistory(currOrder!!.type,currOrder.qty,currOrder.price,currOrder.createdBy, currOrder.esopType)
                     partialOrderHistory.id=currOrder.id.first
                     partialOrderHistory.status="unfilled"
                     partialOrderHistory.timestamp=
