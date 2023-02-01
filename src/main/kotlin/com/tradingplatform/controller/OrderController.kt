@@ -190,6 +190,7 @@ class OrderController {
         }
 
         if (body["type"] == null || !body["type"]!!.isString || (body["type"]!!.stringValue != "SELL" && body["type"]!!.stringValue != "BUY")) {
+
             errorList.add("Order Type is not valid")
         }
         if (errorList.isNotEmpty()) {
@@ -202,6 +203,7 @@ class OrderController {
         val type = body["type"]!!.stringValue
         val price = body["price"]!!.intValue
         val esopType = if (body["esopType"] !== null) body["esopType"]!!.stringValue else "NORMAL"
+
 
 
         OrderValidation().isValidQuantity(errorList, quantity)
@@ -223,7 +225,6 @@ class OrderController {
         var newOrder: Order? = null
         if (Users.containsKey(userName)) {
             val user = Users[userName]!!
-
 
             if(type == "BUY"){
                 if(quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
