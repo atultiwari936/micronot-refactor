@@ -122,7 +122,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
                 potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                 potentialBuyOrder.filledQty += potentialBuyOrderQty
-                Users[potentialBuyOrder.createdBy]!!.walletLocked -= potentialBuyOrderQty * price
+                Users[potentialBuyOrder.createdBy]!!.walletLocked -= potentialBuyOrderQty *potentialBuyOrder.price
                 Users[potentialBuyOrder.createdBy]!!.walletFree += potentialBuyOrderQty * (potentialBuyOrder.price - price)
                 Users[potentialBuyOrder.createdBy]!!.inventoryFree += potentialBuyOrderQty
                 if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
@@ -156,6 +156,7 @@ val BuyOrders = PriorityQueue { order1 : Order, order2 : Order ->
         else -> {(order1.timestamp - order2.timestamp).toInt()}
     }
 }
+
 val SellOrders = PriorityQueue { order1 : Order, order2 : Order ->
     when{
         order1.id.second > order2.id.second -> -1
