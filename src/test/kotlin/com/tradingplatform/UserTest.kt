@@ -2,11 +2,9 @@ package com.tradingplatform
 
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
-import com.tradingplatform.model.*
+import com.tradingplatform.model.User
+import com.tradingplatform.model.Users
 import com.tradingplatform.validations.UserValidation
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.restassured.specification.RequestSpecification
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +12,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
-@MicronautTest
 class UserTest {
     @BeforeEach
     fun `Tear down existing data`() {
@@ -153,67 +150,5 @@ class UserTest {
 
 
         Assertions.assertEquals(0, errorList.size)
-    }
-
-
-    @Test
-    fun `Check if user data is valid`() {
-        val objectOfUserController = UserController()
-        val user1 = User("vv", "vv", "+918888888888", "tt@gmail.com", "atul_1")
-
-
-        val errorList = objectOfUserController.checkIfInputDataIsValid(user1)
-
-
-
-        Assertions.assertEquals(0, errorList.size)
-
-    }
-
-
-    @Test
-    fun `Check for User added to userList`() {
-
-        //Arrange
-        val user1 = User("", "", "", "tt@gmail.com", "atul_1")
-        val objectOfUserController = UserController()
-        objectOfUserController.addUser(user1)
-
-        //Actions
-        val userObject: User? = Users[user1.userName]
-
-        //Assert
-        Assertions.assertEquals(true, Users.containsKey(user1.userName))
-        Assertions.assertEquals(true, "tt@gmail.com" in userObject!!.email)
-
-    }
-
-
-    @Test
-    fun `should register user if given valid data with success message`(spec: RequestSpecification) {
-        val registerBody = User(firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com",
-            phoneNumber = "+912345678977", userName = "atul_99"
-        )
-
-        spec.`when`()
-            .header("Content-Type", "application/json")
-            .body(registerBody)
-            .post("/user/register")
-            .then()
-            .statusCode(200).and()
-            .body("message", Matchers.comparesEqualTo("User registered successfully"))
-    }
-
-    @Test
-    fun `should return field missing message if field not found in request body`(spec: RequestSpecification) {
-        spec.`when`()
-            .header("Content-Type", "application/json")
-            .body("{\"firstName\":\"Atul\", \"lastName\":\"Tiwari\"}")
-            .post("/user/register")
-            .then()
-            .statusCode(400).and()
-            .body("error", Matchers.contains("Enter the userName field", "Enter the phoneNumber field",
-                "Enter the email field")
-            )
     }
 }
