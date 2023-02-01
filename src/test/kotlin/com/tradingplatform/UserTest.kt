@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 
 class UserTest {
@@ -16,38 +17,27 @@ class UserTest {
         Users.clear()
     }
     @ParameterizedTest
-    @ValueSource(strings = ["check@sahaj..ai.com","check@sahaj--ai.com","check@sahaj.911emergency.com",
-        "check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com",
-        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665",
-        "check@sahaj.a",
-        "checksahaj.ai",
-        "checksahajai",
-        " ",
-        "",
-        "8934"
-    ])
-    fun `Test should check if the user email is invalid`(email :String)
+    @CsvSource(textBlock = """
+        check@sahaj..ai.com, check@sahaj.ai.com
+        check@sahaj--ai.com,check@sahaj-ai.com
+        check@sahaj.911emergency.com,check@sahaj.e44mergency.com4
+        check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com,check@a123456789a123456789a123456789a123456789a123456789a123456789123.com
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665,check@sahaj.co.in.com.hi89
+        check@sahaj.a,check@sahaj.ai.co.in
+        checksahaj.ai,check@s23haj.h67
+        checksahajai,check@s-o-m-e-t-h-i-n-g.ai
+        check@jhsd#kjn.com, check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123
+        check@12sjhd.co.in, check@sahaj.ai
+        8934 ,checks-ahaj@ai.ai""")
+    fun `Test should validate the user email`(invalidEmail :String,validEmail:String)
     {
         val errorList = arrayListOf<String>()
 
-        val actualResponse = UserValidation().isEmailValid(errorList,email )
+        val actualResponseForInvalidEmail = UserValidation().isEmailValid(errorList,invalidEmail )
+        val actualResponseForValidEmail = UserValidation().isEmailValid(errorList,validEmail )
 
-        Assertions.assertEquals(false, actualResponse)
-    }
-    @ParameterizedTest
-    @ValueSource(strings = ["check@sahaj.ai.com","check@sahaj-ai.com","check@sahaj.e44mergency.com4",
-        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.com",
-        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123",
-        "check@sahaj.ai",
-        "checks-ahaj@ai.ai"
-    ])
-    fun `Test should check if the user email is valid`(email :String)
-    {
-        val errorList = arrayListOf<String>()
-
-        val actualResponse = UserValidation().isEmailValid(errorList,email )
-
-        Assertions.assertEquals(true, actualResponse)
+        Assertions.assertEquals(false, actualResponseForInvalidEmail)
+        Assertions.assertEquals(true, actualResponseForValidEmail)
     }
     @Test
     fun `Test should return invalid username if username has unwanted special characters`() {
