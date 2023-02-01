@@ -16,8 +16,10 @@ class UserTest {
     fun `Tear down existing data`() {
         Users.clear()
     }
+
     @ParameterizedTest
-    @CsvSource(textBlock = """
+    @CsvSource(
+        textBlock = """
         check@sahaj..ai.com, check@sahaj.ai.com
         check@sahaj--ai.com,check@sahaj-ai.com
         check@sahaj.911emergency.com,check@sahaj.e44mergency.com4
@@ -28,17 +30,18 @@ class UserTest {
         checksahajai,check@s-o-m-e-t-h-i-n-g.ai
         check@jhsd#kjn.com, check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123
         check@12sjhd.co.in, check@sahaj.ai
-        8934 ,checks-ahaj@ai.ai""")
-    fun `Test should validate the user email`(invalidEmail :String,validEmail:String)
-    {
+        8934 ,checks-ahaj@ai.ai"""
+    )
+    fun `Test should validate the user email`(invalidEmail: String, validEmail: String) {
         val errorList = arrayListOf<String>()
 
-        val actualResponseForInvalidEmail = UserValidation().isEmailValid(errorList,invalidEmail )
-        val actualResponseForValidEmail = UserValidation().isEmailValid(errorList,validEmail )
+        val actualResponseForInvalidEmail = UserValidation().isEmailValid(errorList, invalidEmail)
+        val actualResponseForValidEmail = UserValidation().isEmailValid(errorList, validEmail)
 
         Assertions.assertEquals(false, actualResponseForInvalidEmail)
         Assertions.assertEquals(true, actualResponseForValidEmail)
     }
+
     @Test
     fun `Test should return invalid username if username has unwanted special characters`() {
         val sampleUserName = ".."

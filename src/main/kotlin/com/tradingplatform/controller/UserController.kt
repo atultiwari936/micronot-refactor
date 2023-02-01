@@ -1,6 +1,7 @@
 package com.tradingplatform.controller
-import com.tradingplatform.validations.UserValidation
+
 import com.tradingplatform.model.*
+import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.MutableHttpResponse
@@ -12,23 +13,22 @@ import io.micronaut.json.tree.JsonObject
 class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
-   
+
         var errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>()
-        val fieldLists= arrayListOf("userName","firstName","lastName","phoneNumber","email")
+        val fieldLists = arrayListOf("userName", "firstName", "lastName", "phoneNumber", "email")
 
         //Check for empty fields
         for (field in fieldLists) {
             if (UserValidation().isFieldExists(field, body)) {
                 errorList.add("Enter the $field field")
                 errorResponse["error"] = errorList
-            }else if(body[field]==null||!body[field]!!.isString)
-            {
+            } else if (body[field] == null || !body[field]!!.isString) {
                 errorList.add("$field Data type not in valid format")
                 errorResponse["error"] = errorList
             }
         }
-        
+
         if (errorList.isNotEmpty()) {
             return HttpResponse.badRequest(errorResponse)
         }
@@ -46,7 +46,7 @@ class UserController {
             phoneNumber = phoneNumber
         )
 
-        errorList=checkIfInputDataIsValid(userData)
+        errorList = checkIfInputDataIsValid(userData)
 
         if (errorList.isNotEmpty()) {
             errorResponse["error"] = errorList
@@ -61,10 +61,9 @@ class UserController {
         return HttpResponse.ok(okResponse)
     }
 
-    fun checkIfInputDataIsValid(user:User) : ArrayList<String>
-    {
+    fun checkIfInputDataIsValid(user: User): ArrayList<String> {
         val errorList = arrayListOf<String>()
-        UserValidation().isEmailValid(errorList,user.email)
+        UserValidation().isEmailValid(errorList, user.email)
         UserValidation().isPhoneValid(errorList, user.phoneNumber)
         UserValidation().isUserNameValid(errorList, user.userName)
         UserValidation().isNameValid(errorList, user.firstName)
@@ -72,18 +71,17 @@ class UserController {
         return errorList
     }
 
-    fun addUser(userData : User)
-    {
-        Users[userData.userName]=userData
+    fun addUser(userData: User) {
+        Users[userData.userName] = userData
     }
 
     @Get(value = "/{userName}/accountInformation")
-    fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
+    fun getAccountInformation(@PathVariable(name = "userName") userName: String): MutableHttpResponse<out Any?>? {
 
-        val response = mutableMapOf<String,Any>()
+        val response = mutableMapOf<String, Any>()
         val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList,userName)
-        if(errorList.isNotEmpty()){
+        UserValidation().isUserExists(errorList, userName)
+        if (errorList.isNotEmpty()) {
             response["error"] = errorList
 
             return HttpResponse.badRequest(response)

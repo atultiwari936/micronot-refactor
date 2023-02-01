@@ -8,80 +8,78 @@ const val maxLimitForWallet = 100
 const val maxLimitForInventory = 100
 
 class UserValidation {
-    private val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
-    private val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
-    private val nameRegex="^[a-zA-z ]*\$"
-    private val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
-    fun isUserExists(list: ArrayList<String>,userName: String)
-    {
-        if(userName==null) {
+    private val emailRegex =
+        "([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
+    private val userNameRegex = "([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
+    private val nameRegex = "^[a-zA-z ]*\$"
+    private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
+    fun isUserExists(list: ArrayList<String>, userName: String) {
+        if (userName == null) {
             list.add("Username is Null")
             return
         }
         if(!Users.containsKey(userName))
             list.add("User does not exists")
     }
-    fun isEmailValid (list :ArrayList<String>,email:String):Boolean
-    {
-        if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
-        {
+
+    private fun isEmailAsPerRegex(list: ArrayList<String>, email: String): Boolean {
+        if (!(email.isNotEmpty() && emailRegex.toRegex().matches(email))) {
             list.add("Invalid email format")
             return false
         }
-        val parts = email.split("@")
-        val subDomains=parts[1].split(".")
-         if(parts[0].length>64||parts[1].length>255||subDomains[subDomains.size-1].length<2)
-        {
-            list.add("Invalid email format")
-            return false
-        }
-        for(subdomain in subDomains)
-        {
-            if(subdomain.length>63)
-            {
-                list.add("Invalid email format")
-                return false
-            }
-        }
-        if(!isEmailUnique(email))
-        {
-            list.add("Email is already registered")
-            return false
-        }
-            return true
+        return true
     }
 
-    private fun isEmailUnique(email: String):Boolean
-    {
-        for (user in Users.keys) {
-            if(Users[user]!!.email==email)
-            {
+    private fun isEmailInSpecifiedLength(list: ArrayList<String>, email: String): Boolean {
+        val parts = email.split("@")
+        val subDomains = parts[1].split(".")
+        if (parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
+            list.add("Invalid email format")
+            return false
+        }
+        for (subDomain in subDomains) {
+            if (subDomain.length > 63) {
+                list.add("Invalid email format")
                 return false
             }
         }
         return true
     }
 
-    fun isPhoneValid (list :ArrayList<String>,phoneNumber:String): Boolean
-    {
-        if(!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber)))
-        {
+    fun isEmailValid(list: ArrayList<String>, email: String): Boolean {
+        if (!isEmailAsPerRegex(list, email))
+            return false
+        if (!isEmailInSpecifiedLength(list, email))
+            return false
+        if (!isEmailUnique(list, email))
+            return false
+        return true
+    }
+
+    private fun isEmailUnique(list: ArrayList<String>, email: String): Boolean {
+        for (user in Users.keys) {
+            if (Users[user]!!.email == email) {
+                list.add("Email is already registered")
+                return false
+            }
+        }
+        return true
+    }
+
+    fun isPhoneValid(list: ArrayList<String>, phoneNumber: String): Boolean {
+        if (!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber))) {
             list.add("Invalid PhoneNumber format")
             return false
-        }
-        else if(!isPhoneUnique(phoneNumber))
-        {
+        } else if (!isPhoneUnique(phoneNumber)) {
             list.add("Phone Number already registered")
             return false
         }
         return true
     }
 
-    private fun isPhoneUnique(phoneNumber: String):Boolean
-    {
+    private fun isPhoneUnique(phoneNumber: String): Boolean {
         for (user in Users.keys) {
-            if(Users[user]!!.phoneNumber==phoneNumber)
-            {
+            if (Users[user]!!.phoneNumber == phoneNumber) {
                 return false
             }
         }
@@ -89,27 +87,20 @@ class UserValidation {
     }
 
 
-
-    fun isUserNameValid (list :ArrayList<String>,userName:String): Boolean
-    {
-        if(!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName)))
-        {
+    fun isUserNameValid(list: ArrayList<String>, userName: String): Boolean {
+        if (!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName))) {
             list.add("Invalid Username format")
             return false
-        }
-        else if(!isUnameUnique(userName))
-        {
+        } else if (!isUnameUnique(userName)) {
             list.add("Username already registered")
             return false
         }
         return true
     }
 
-    private fun isUnameUnique(userName: String):Boolean
-    {
+    private fun isUnameUnique(userName: String): Boolean {
         for (user in Users.keys) {
-            if(Users[user]!!.userName==userName)
-            {
+            if (Users[user]!!.userName == userName) {
                 return false
             }
         }
@@ -117,18 +108,15 @@ class UserValidation {
     }
 
 
-    fun isNameValid (list :ArrayList<String>,name:String) : Boolean
-    {
-        if(!(name.isNotEmpty()&& nameRegex.toRegex().matches(name)))
-        {
+    fun isNameValid(list: ArrayList<String>, name: String): Boolean {
+        if (!(name.isNotEmpty() && nameRegex.toRegex().matches(name))) {
             list.add("Invalid Name format")
             return false
         }
         return true
     }
 
-    fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
-    {
+    fun isFieldExists(fieldName: String, body: JsonObject): Boolean {
         return body[fieldName] == null
     }
 
@@ -153,12 +141,11 @@ class OrderValidation {
 
     }
 
-    fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
-    {
+    fun isFieldExists(fieldName: String, body: JsonObject): Boolean {
         return body[fieldName] == null
     }
 
-    fun isValidEsopType(list:ArrayList<String>, esopType: String) : Boolean {
+    fun isValidEsopType(list: ArrayList<String>, esopType: String): Boolean {
         if (esopType == "PERFORMANCE" || esopType == "NORMAL") {
             return true
         }
