@@ -55,8 +55,8 @@ class UserController {
 
         addUser(userData)
 
-        var okResponse = HashMap<String, String>()
-        okResponse.put("message", "User registered successfully")
+        val okResponse = HashMap<String, String>()
+        okResponse["message"] = "User registered successfully"
 
         return HttpResponse.ok(okResponse)
     }
