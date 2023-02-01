@@ -1,19 +1,12 @@
 package com.tradingplatform.controller
 
-import OrderValidation
-import UserValidation
+import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 
 @Controller("/user")
