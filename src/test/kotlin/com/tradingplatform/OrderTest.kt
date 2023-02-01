@@ -22,11 +22,11 @@ class OrderTest {
 
     @Test
     fun `Check if user data is valid`(){
-        var objectOfUserController=UserController()
-        var user1= User("vv","vv","+918888888888","tt@gmail.com","atul_1")
+        val objectOfUserController=UserController()
+        val user1= User("vv","vv","+918888888888","tt@gmail.com","atul_1")
 
 
-        var errorList=objectOfUserController.checkIfInputDataIsValid(user1)
+        val errorList=objectOfUserController.checkIfInputDataIsValid(user1)
 
 
 
@@ -43,7 +43,7 @@ class OrderTest {
     fun `Check for User added to userList`(){
 
         //Arrange
-        var user1= User("","","","tt@gmail.com","atul_1")
+        val user1= User("","","","tt@gmail.com","atul_1")
         val objectOfUserController=UserController()
         objectOfUserController.addUser(user1)
 
@@ -59,7 +59,7 @@ class OrderTest {
     @Test
     fun `check whether amount added to wallet`(){
 
-        var user1= User("","","","tt@gmail.com","atul_1")
+        val user1= User("","","","tt@gmail.com","atul_1")
         val objectOfUserController=UserController()
         objectOfUserController.addUser(user1)
         val objectOfWalletController=WalletController()
@@ -75,7 +75,7 @@ class OrderTest {
     @Test
     fun `check whether Performance esops added to inventory`(){
 
-        var user1= User("","","","tt@gmail.com","atul_1")
+        val user1= User("","","","tt@gmail.com","atul_1")
         val objectOfUserController=UserController()
         objectOfUserController.addUser(user1)
         val objectOfInventoryController=InventoryController()
@@ -91,7 +91,7 @@ class OrderTest {
     @Test
     fun `check whether Normal esops added to inventory`(){
 
-        var user1= User("","","","tt@gmail.com","atul_1")
+        val user1= User("","","","tt@gmail.com","atul_1")
         val objectOfUserController=UserController()
         objectOfUserController.addUser(user1)
         val objectOfInventoryController=InventoryController()
@@ -107,14 +107,15 @@ class OrderTest {
     @Test
     fun `Check a single buy order`() {
         //Arrange
-        var user1= User("","","","","atul_1")
+        val user1= User("","","","","atul_1")
         Users[user1.userName]=user1
         user1.walletFree=100
+        val objectOfOrderController=OrderController()
 
         //Act
 
 
-        var x=OrderController().orderHandler(user1.userName,"BUY",1,20,"NORMAL")
+       objectOfOrderController.orderHandler(user1.userName,"BUY",1,20,"NORMAL")
 
         //Assert
         Assertions.assertEquals(80,user1.walletFree)
@@ -126,18 +127,18 @@ class OrderTest {
     @Test
     fun `Check buy order satisfied partially by sell order`() {
         //Arrange
-        var user1= User("","","","","atul_1")
+        val user1= User("","","","","atul_1")
         Users[user1.userName]=user1
         user1.walletFree=100
 
-        var user2= User("","","","","atul_2")
+        val user2= User("","","","","atul_2")
         Users[user2.userName]=user2
         user2.inventoryFree=10
 
         //Act
-        var objectOfOrderController=OrderController()
-        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
-        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+        val objectOfOrderController=OrderController()
+        objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+        objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
 
 
         //Assert
@@ -156,19 +157,19 @@ class OrderTest {
     @Test
     fun `Check sell order satisfied partially by buy order`() {
         //Arrange
-        var user1= User("","","","","atul_1")
+        val user1= User("","","","","atul_1")
         Users[user1.userName]=user1
         user1.inventoryFree=11
 
-        var user2= User("","","","","atul_2")
+        val user2= User("","","","","atul_2")
         Users[user2.userName]=user2
         user2.walletFree=100
 
 
         //Act
-        var objectOfOrderController=OrderController()
-        var sellOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"SELL",10,20)
-        var buyOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"BUY",5,20)
+        val objectOfOrderController=OrderController()
+        objectOfOrderController.orderHandler(user1.userName,"SELL",10,20)
+        objectOfOrderController.orderHandler(user2.userName,"BUY",5,20)
 
 
 
@@ -188,7 +189,7 @@ class OrderTest {
     @Test
     fun `Check a single sell order performance`() {
         //Arrange
-        var user1= User("","","","","kcsp")
+        val user1= User("","","","","kcsp")
         Users[user1.userName]=user1
         user1.inventoryFree=40
         user1.perfFree=40
@@ -196,7 +197,7 @@ class OrderTest {
 
         //Act
 
-        var x=OrderController().orderHandler(user1.userName,"SELL",10,100,"PERFORMANCE")
+        OrderController().orderHandler(user1.userName,"SELL",10,100,"PERFORMANCE")
 
         //Assert
         Assertions.assertEquals(40,user1.inventoryFree)
@@ -210,18 +211,18 @@ class OrderTest {
     @Test
     fun `Check buy order after a sell order`(){
         //Arrange
-        var user1= User("","","","","atul_1")
+        val user1= User("","","","","atul_1")
         Users[user1.userName]=user1
         user1.walletFree=100
-        var user2= User("","","","","atul_2")
+        val user2= User("","","","","atul_2")
         Users[user2.userName]=user2
         user2.inventoryFree=10
-        var objectOfOrderController=OrderController()
-        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+        val objectOfOrderController=OrderController()
+        objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
 
 
         //Act
-        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+        objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
 
 
         //Assert
@@ -239,18 +240,18 @@ class OrderTest {
     @Test
     fun `Check sell order after a buy order`(){
         //Arrange
-        var user1= User("","","","","atul_1")
+        val user1= User("","","","","atul_1")
         Users[user1.userName]=user1
         user1.walletFree=100
-        var user2= User("","","","","atul_2")
+        val user2= User("","","","","atul_2")
         Users[user2.userName]=user2
         user2.inventoryFree=10
-        var objectOfOrderController=OrderController()
-        var buyOrderPlacedByUser1=objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
+        val objectOfOrderController=OrderController()
+        objectOfOrderController.orderHandler(user1.userName,"BUY",5,20)
 
 
         //Act
-        var sellOrderPlacedByUser2=objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
+       objectOfOrderController.orderHandler(user2.userName,"SELL",2,20)
 
 
         //Assert
