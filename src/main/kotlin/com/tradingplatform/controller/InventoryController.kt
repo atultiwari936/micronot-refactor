@@ -18,43 +18,44 @@ import kotlin.math.roundToInt
 class InventoryController {
     @Post(value="/inventory")
     fun addInventory(@Body body: JsonObject, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
-        val response = mutableMapOf<String, MutableList<String>>();
-        var errorList = arrayListOf<String>()
-        var msg = mutableListOf<String>()
+        val response = mutableMapOf<String, MutableList<String>>()
+        val msg = mutableListOf<String>()
+        val errorList=checkIfUserExist(userName)
 
 
-        errorList=checkIfUserExist(userName)
-
-        response["error"] = errorList;
+        response["error"] = errorList
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        if(body["quantity"]==null)
+        val quantity = body["quantity"]
+        if(quantity ==null)
         {
             errorList.add("Quantity is missing")
-            response["error"] = errorList;
+            response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
-        if( !body["quantity"].isNumber || ceil(body["quantity"].doubleValue).roundToInt()!=body["quantity"].intValue) {
+        if(!quantity.isNumber || ceil(quantity.doubleValue).roundToInt()!= quantity.intValue) {
 
             errorList.add("Quantity data type is invalid")
         }
-        else if(OrderValidation().isValidQuantity(errorList,body["quantity"].intValue)){
-            OrderValidation().isInventoryWithinLimit(errorList, Users[userName]!!,body["quantity"].intValue)
+        else if(OrderValidation().isValidQuantity(errorList, quantity.intValue)){
+            OrderValidation().isInventoryWithinLimit(errorList, Users[userName]!!, quantity.intValue)
         }
 
-        if(body["type"]!=null &&( !body["type"].isString||body["type"].stringValue!="PERFORMANCE"))
+        val type = body["type"]
+
+        if(type !=null &&( !type.isString|| type.stringValue!="PERFORMANCE"))
         {
             errorList.add("ESOP type is invalid ( Allowed value : PERFORMANCE and NON-PERFORMANCE)")
         }
 
-        response["error"] = errorList;
+        response["error"] = errorList
 
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        if(body["type"]!=null)
-            msg.add(addESOPStoUserInventory(userName,"PERFORMANCE",body["quantity"].intValue))
+        if(type !=null)
+            msg.add(addESOPStoUserInventory(userName,"PERFORMANCE", quantity.intValue))
         else
-            msg.add(addESOPStoUserInventory(userName,"NORMAL",body["quantity"].intValue))
+            msg.add(addESOPStoUserInventory(userName,"NORMAL", quantity.intValue))
 
         response["message"]=msg
         return HttpResponse.ok(response)
@@ -65,15 +66,15 @@ class InventoryController {
         if(type=="PERFORMANCE")
         {
             Users[userName]!!.perf_free+=esopQuantity
-            return ("${esopQuantity} Performance ESOPs added to account")
+            return ("$esopQuantity Performance ESOPs added to account")
         }
 
         Users[userName]!!.inventory_free+=esopQuantity
-        return ("${esopQuantity} ESOPs added to account")
+        return ("$esopQuantity ESOPs added to account")
     }
 
     fun checkIfUserExist(userName: String): ArrayList<String> {
-        var errorList = arrayListOf<String>()
+        val errorList = arrayListOf<String>()
         UserValidation().isUserExists(errorList,userName)
         return errorList
     }
