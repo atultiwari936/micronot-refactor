@@ -4,8 +4,8 @@ import com.tradingplatform.model.User
 import com.tradingplatform.model.Users
 import io.micronaut.json.tree.JsonObject
 
-const val maxLimitForWallet = 100
-const val maxLimitForInventory = 100
+const val maxLimitForWallet = 10000000
+const val maxLimitForInventory = 100000000
 
 class UserValidation {
     private val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
@@ -124,17 +124,17 @@ class UserValidation {
 
 
 class OrderValidation {
-    fun isValidAmount(list:ArrayList<String>,amount :Int, fieldName: String):Boolean
+    fun isValidAmount(list:ArrayList<String>,amount :Int):Boolean
     {
         if(amount<=0)
         {
-            list.add("Enter a positive $fieldName")
+            list.add("Enter a positive amount")
             return false
         }
         else if(amount> maxLimitForWallet)
         {
 
-            list.add("Enter $fieldName between 0 to $maxLimitForWallet")
+            list.add("Enter amount between 0 to $maxLimitForWallet")
             return false
         }
         return true
@@ -167,7 +167,7 @@ class OrderValidation {
 
     fun isValidOrderType(list:ArrayList<String>,type:String)
     {
-       val array = arrayListOf("PERFORMANCE")
+        val array = arrayListOf("PERFORMANCE")
         if(type !in array)
             list.add("Invalid Order type (Allowed : PERFORMANCE)")
 
