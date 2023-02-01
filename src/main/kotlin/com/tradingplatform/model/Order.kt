@@ -49,7 +49,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                         var taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
                         Users[potentialSellOrder.createdBy]!!.walletFree +=(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
-                        platformData.feesEarned += BigInteger(taxAmount.toString())
+                        PlatformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[potentialSellOrder.createdBy]!!.inventoryLocked -= potentialSellOrderQty
                     }
 
@@ -101,7 +101,7 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
                         Users[createdBy]!!.walletFree += (potentialBuyOrderQty * price - taxAmount)
                         Users[createdBy]!!.pendingCreditAmount -= (potentialBuyOrderQty * price - taxAmount)
-                        platformData.feesEarned += BigInteger(taxAmount.toString())
+                        PlatformData.feesEarned += BigInteger(taxAmount.toString())
                         Users[createdBy]!!.inventoryLocked -= potentialBuyOrderQty
 
                     }
