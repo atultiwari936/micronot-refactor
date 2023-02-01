@@ -1,6 +1,4 @@
 package com.tradingplatform.controller
-
-
 import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
@@ -35,15 +33,11 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-
-
         val userName = body["userName"]!!.stringValue
         val phoneNumber = body["phoneNumber"]!!.stringValue
         val firstName = body["firstName"]!!.stringValue
         val lastName = body["lastName"]!!.stringValue
         val email = body["email"]!!.stringValue
-
-
         val userData = User(
             firstName = firstName,
             lastName = lastName,
@@ -52,27 +46,20 @@ class UserController {
             phoneNumber = phoneNumber
         )
 
-
         errorList=checkIfInputDataIsValid(userData)
-
-
 
         if (errorList.isNotEmpty()) {
             errorResponse["error"] = errorList
             return HttpResponse.badRequest(errorResponse)
         }
 
-
-
         addUser(userData)
-
 
         val okResponse = HashMap<String, String>()
         okResponse["message"] = "User Registered successfully"
 
         return HttpResponse.ok(okResponse)
     }
-
 
     fun checkIfInputDataIsValid(user:User) : ArrayList<String>
     {
@@ -85,17 +72,10 @@ class UserController {
         return errorList
     }
 
-
-
-
-
-
-
     fun addUser(userData : User)
     {
         Users[userData.userName]=userData
     }
-
 
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name="userName")userName: String): MutableHttpResponse<out Any?>? {
@@ -132,4 +112,3 @@ class UserController {
         return HttpResponse.ok(response)
     }
 }
-
