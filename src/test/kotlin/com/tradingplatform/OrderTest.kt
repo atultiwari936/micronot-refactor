@@ -1,9 +1,6 @@
 package com.tradingplatform
 
-import com.tradingplatform.controller.InventoryController
-import com.tradingplatform.controller.OrderController
 import com.tradingplatform.controller.UserController
-import com.tradingplatform.controller.WalletController
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -20,19 +17,20 @@ class OrderTest {
         Users.clear()
     }
 
-
-
-
-
     @Test
-    fun `Test if filled quantity is initialized to 0 when order is created `() {
+    fun `Check if user data is valid`(){
+        val objectOfUserController=UserController()
+        val user1= User("vv","vv","+918888888888","tt@gmail.com","atul_1")
 
 
-        val objectOfOrder = Order("BUY", 10, 20, "atul")
+        val errorList=objectOfUserController.checkIfInputDataIsValid(user1)
 
-        Assertions.assertEquals(0, objectOfOrder.filledQty)
+
+
+        Assertions.assertEquals(0,errorList.size)
 
     }
+
 
 
 }
