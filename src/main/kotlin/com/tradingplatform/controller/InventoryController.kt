@@ -22,7 +22,12 @@ class InventoryController {
         var errorList = arrayListOf<String>()
         var msg = mutableListOf<String>()
 
-        UserValidation().isUserExists(errorList,userName)
+
+        errorList=checkIfUserExist(userName)
+
+        response["error"] = errorList;
+        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+
         if(body["quantity"]==null)
         {
             errorList.add("Quantity is missing")
@@ -65,6 +70,12 @@ class InventoryController {
 
         Users[userName]!!.inventory_free+=esopQuantity
         return ("${esopQuantity} ESOPs added to account")
+    }
+
+    fun checkIfUserExist(userName: String): ArrayList<String> {
+        var errorList = arrayListOf<String>()
+        UserValidation().isUserExists(errorList,userName)
+        return errorList
     }
 
 
