@@ -23,13 +23,14 @@ class UserValidation {
     }
     fun isEmailValid (list :ArrayList<String>,email:String):Boolean
     {
-        val parts = email.split("@")
-        val subDomains=parts[1].split(".")
         if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
         {
             list.add("Invalid email format")
+            return false
         }
-        else if(parts[0].length>64||parts[1].length>255)
+        val parts = email.split("@")
+        val subDomains=parts[1].split(".")
+         if(parts[0].length>64||parts[1].length>255)
         {
             list.add("Max email length exceeded")
         }

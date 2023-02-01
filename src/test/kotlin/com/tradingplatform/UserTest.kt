@@ -19,7 +19,24 @@ class UserTest {
     @ValueSource(strings = ["check@sahaj..ai.com","check@sahaj--ai.com","check@sahaj.911emergency.com",
         "check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com",
         "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665",
-        "check@sahaj.a"
+        "check@sahaj.a",
+        "checksahaj.ai",
+        "checksahajai"
+    ])
+    fun `Test should check if the user email is invalid`(email :String)
+    {
+        val errorList = arrayListOf<String>()
+
+        val actualResponse = UserValidation().isEmailValid(errorList,email )
+
+        Assertions.assertEquals(false, actualResponse)
+    }
+    @ParameterizedTest
+    @ValueSource(strings = ["check@sahaj.ai.com","check@sahaj-ai.com","check@sahaj.e44mergency.com4",
+        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.com",
+        "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123",
+        "check@sahaj.ai",
+        "checks-ahaj@ai.ai"
     ])
     fun `Test should check if the user email is valid`(email :String)
     {
@@ -27,7 +44,7 @@ class UserTest {
 
         val actualResponse = UserValidation().isEmailValid(errorList,email )
 
-        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(true, actualResponse)
     }
     @Test
     fun `Test should return invalid username if username has unwanted special characters`() {
