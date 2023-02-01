@@ -207,7 +207,7 @@ class OrderController {
 
 
         OrderValidation().isValidQuantity(errorList, quantity)
-        OrderValidation().isValidAmount(errorList, price)
+        OrderValidation().isValidAmount(errorList,price)
         OrderValidation().isValidEsopType(errorList, esopType)
 
 
