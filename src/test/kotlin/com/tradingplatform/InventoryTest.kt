@@ -8,6 +8,36 @@ import org.junit.jupiter.api.Test
 
 class InventoryTest {
 
+    @Test
+    fun `check whether Performance esops added to inventory`() {
+
+        val user1 = User("", "", "", "tt@gmail.com", "atul_1")
+        val objectOfUserController = UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfInventoryController = InventoryController()
+
+
+        objectOfInventoryController.addESOPStoUserInventory(user1.userName, "PERFORMANCE", 100)
+
+
+        Assertions.assertEquals(100, user1.perfFree)
+    }
+
+
+    @Test
+    fun `check whether Normal esops added to inventory`() {
+
+        val user1 = User("", "", "", "tt@gmail.com", "atul_1")
+        val objectOfUserController = UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfInventoryController = InventoryController()
+
+
+        objectOfInventoryController.addESOPStoUserInventory(user1.userName, "NORMAL", 100)
+
+
+        Assertions.assertEquals(100, user1.inventoryFree)
+    }
 
 
 }
