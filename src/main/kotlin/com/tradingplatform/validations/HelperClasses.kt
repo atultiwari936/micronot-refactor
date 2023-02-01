@@ -169,7 +169,7 @@ class OrderValidation {
     }
 
     fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
-        if(user.wallet_free + user.wallet_locked+ user.pendingCreditAmount + amount > 10000000){
+        if(user.walletFree + user.walletLocked+ user.pendingCreditAmount + amount > 10000000){
             list.add("Cannot place the order. Wallet amount will exceed 10000000")
             return false
         }
@@ -178,7 +178,7 @@ class OrderValidation {
 
     fun isInventoryWithinLimit(list:ArrayList<String>,user:User, inventory:Int):Boolean{
 
-        if(user.inventory_free + user.inventory_locked+ user.perf_free + user.perf_locked + user.pendingCreditEsop +inventory > 10000000){
+        if(user.inventoryFree + user.inventoryLocked+ user.perfFree + user.perfLocked + user.pendingCreditEsop +inventory > 10000000){
             list.add("Cannot place the order. Total Inventory will exceed 10000000")
             return false
         }

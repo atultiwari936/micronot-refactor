@@ -47,7 +47,7 @@ class WalletController {
 
     fun addAmountToWallet(userName: String,amount:Int)
     {
-        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(amount)!!
+        Users[userName]?.walletFree = Users[userName]?.walletFree?.plus(amount)!!
     }
 
 
