@@ -63,7 +63,7 @@ class UserController {
 
     fun checkIfInputDataIsValid(user: User): ArrayList<String> {
         val errorList = arrayListOf<String>()
-        UserValidation().isEmailValid(errorList, user.email)
+        errorList.addAll(UserValidation().isEmailValid(user.email))
         UserValidation().isPhoneValid(errorList, user.phoneNumber)
         UserValidation().isUserNameValid(errorList, user.userName)
         UserValidation().isNameValid(errorList, user.firstName)

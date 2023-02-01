@@ -22,48 +22,46 @@ class UserValidation {
             list.add("User does not exists")
     }
 
-    private fun isEmailAsPerRegex(list: ArrayList<String>, email: String): Boolean {
+    private fun isEmailAsPerRegex(email: String): List<String> {
         if (!(email.isNotEmpty() && emailRegex.toRegex().matches(email))) {
-            list.add("Invalid email format")
-            return false
+            return listOf("Invalid email format")
         }
-        return true
+        return emptyList()
     }
 
-    private fun isEmailInSpecifiedLength(list: ArrayList<String>, email: String): Boolean {
+    private fun isEmailInSpecifiedLength(email: String): List<String> {
+        val errorList = arrayListOf<String>()
         val parts = email.split("@")
         val subDomains = parts[1].split(".")
         if (parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
-            list.add("Invalid email format")
-            return false
+            return listOf("Invalid email format")
         }
         for (subDomain in subDomains) {
             if (subDomain.length > 63) {
-                list.add("Invalid email format")
-                return false
+                return listOf("Invalid email format")
             }
         }
-        return true
+        return errorList
     }
 
-    fun isEmailValid(list: ArrayList<String>, email: String): Boolean {
-        if (!isEmailAsPerRegex(list, email))
-            return false
-        if (!isEmailInSpecifiedLength(list, email))
-            return false
-        if (!isEmailUnique(list, email))
-            return false
-        return true
+    fun isEmailValid(email: String): List<String> {
+        val errorList = arrayListOf<String>()
+        errorList.addAll(isEmailAsPerRegex(email))
+        if(errorList.isNotEmpty()) return errorList
+        errorList.addAll(isEmailInSpecifiedLength(email))
+        if(errorList.isNotEmpty()) return errorList
+        errorList.addAll(isEmailUnique(email))
+        return errorList
     }
 
-    private fun isEmailUnique(list: ArrayList<String>, email: String): Boolean {
+    private fun isEmailUnique(email: String): List<String> {
+        val errorList = arrayListOf<String>()
         for (user in Users.keys) {
             if (Users[user]!!.email == email) {
-                list.add("Email is already registered")
-                return false
+                errorList.add("Email is already registered")
             }
         }
-        return true
+        return errorList
     }
 
     fun isPhoneValid(list: ArrayList<String>, phoneNumber: String): Boolean {

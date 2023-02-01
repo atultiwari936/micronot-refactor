@@ -5,11 +5,11 @@ import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.ValueSource
 
 class UserTest {
     @BeforeEach
@@ -20,26 +20,46 @@ class UserTest {
     @ParameterizedTest
     @CsvSource(
         textBlock = """
-        check@sahaj..ai.com, check@sahaj.ai.com
-        check@sahaj--ai.com,check@sahaj-ai.com
-        check@sahaj.911emergency.com,check@sahaj.e44mergency.com4
-        check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com,check@a123456789a123456789a123456789a123456789a123456789a123456789123.com
-        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665,check@sahaj.co.in.com.hi89
-        check@sahaj.a,check@sahaj.ai.co.in
-        checksahaj.ai,check@s23haj.h67
-        checksahajai,check@s-o-m-e-t-h-i-n-g.ai
-        check@jhsd#kjn.com, check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123
-        check@12sjhd.co.in, check@sahaj.ai
-        8934 ,checks-ahaj@ai.ai"""
+        check@sahaj..ai.com
+        check@sahaj--ai.com
+        check@sahaj.911emergency.com
+        check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665
+        check@sahaj.a
+        checksahaj.ai
+        checksahajai
+        check@jhsd#kjn.com
+        check@12sjhd.co.in
+        8934"""
     )
-    fun `Test should validate the user email`(invalidEmail: String, validEmail: String) {
-        val errorList = arrayListOf<String>()
+    fun `email validation should return proper error message`(email: String) {
+        val errorMessages = UserValidation().isEmailValid(email)
 
-        val actualResponseForInvalidEmail = UserValidation().isEmailValid(errorList, invalidEmail)
-        val actualResponseForValidEmail = UserValidation().isEmailValid(errorList, validEmail)
+        assertTrue {
+            errorMessages.contains("Invalid email format")
+        }
+    }
 
-        Assertions.assertEquals(false, actualResponseForInvalidEmail)
-        Assertions.assertEquals(true, actualResponseForValidEmail)
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+        check@sahaj.ai.com
+        check@sahaj-ai.com
+        check@sahaj.e44mergency.com4
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.com
+        check@sahaj.co.in.com.hi89
+        check@sahaj.ai.co.in
+        check@s23haj.h67
+        check@s-o-m-e-t-h-i-n-g.ai
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123
+        check@sahaj.ai
+        checks-ahaj@ai.ai"""
+    )
+    fun `proper email address should not have any error message`(email: String) {
+
+        val errorMessages = UserValidation().isEmailValid(email)
+
+        assertTrue(errorMessages.isEmpty())
     }
 
     @Test
