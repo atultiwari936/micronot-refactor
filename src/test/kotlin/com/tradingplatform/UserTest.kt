@@ -1,6 +1,6 @@
 package com.tradingplatform
 
-import UserValidation
+import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
 import com.tradingplatform.model.*

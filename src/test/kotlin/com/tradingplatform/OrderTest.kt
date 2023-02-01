@@ -1,17 +1,13 @@
 package com.tradingplatform
 
-import UserValidation
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.OrderController
 import com.tradingplatform.controller.UserController
 import com.tradingplatform.controller.WalletController
 import com.tradingplatform.model.*
-import io.micronaut.json.tree.JsonObject
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Objects
 
 class OrderTest {
 

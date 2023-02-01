@@ -1,13 +1,18 @@
+package com.tradingplatform.validations
+
 import com.tradingplatform.model.User
 import com.tradingplatform.model.Users
 import io.micronaut.json.tree.JsonObject
 
+const val maxLimitForWallet = 100
+const val maxLimitForInventory = 100
+
 class UserValidation {
-    val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
-    val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
-    val nameRegex="^[a-zA-z ]*\$"
-    val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
-    fun isUserExists(list: ArrayList<String>,userName: String)
+    private val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
+    private val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
+    private val nameRegex="^[a-zA-z ]*\$"
+    private val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
+    fun isUserExists(list: ArrayList<String>,userName: String?)
     {
         if(userName==null) {
             list.add("Username is Null")
@@ -18,7 +23,7 @@ class UserValidation {
     }
     fun isEmailValid (list :ArrayList<String>,email:String)
     {
-        var delimiter = "@"
+        val delimiter = "@"
         val parts = email.split(delimiter)
         if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
         {
@@ -126,10 +131,10 @@ class OrderValidation {
             list.add("Enter a positive $fieldName")
             return false
         }
-        else if(amount>10000000)
+        else if(amount> maxLimitForWallet)
         {
 
-            list.add("Enter $fieldName between 0 to 10000000")
+            list.add("Enter $fieldName between 0 to $maxLimitForWallet")
             return false
         }
         return true
@@ -152,9 +157,9 @@ class OrderValidation {
 
     fun isValidQuantity(list:ArrayList<String>,amount :Int):Boolean
     {
-        if(amount<=0 || amount>10000000)
+        if(amount<=0 || amount> maxLimitForInventory)
         {
-            list.add("Quantity is not valid. Range between 1 and 10000000")
+            list.add("Quantity is not valid. Range between 1 and $maxLimitForInventory")
             return false
         }
         return true
@@ -162,15 +167,15 @@ class OrderValidation {
 
     fun isValidOrderType(list:ArrayList<String>,type:String)
     {
-       var array = arrayListOf<String>("PERFORMANCE")
+       val array = arrayListOf("PERFORMANCE")
         if(type !in array)
             list.add("Invalid Order type (Allowed : PERFORMANCE)")
 
     }
 
     fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
-        if(user.wallet_free + user.wallet_locked+ user.pendingCreditAmount + amount > 10000000){
-            list.add("Cannot place the order. Wallet amount will exceed 10000000")
+        if(user.wallet_free + user.wallet_locked+ user.pendingCreditAmount + amount > maxLimitForWallet){
+            list.add("Cannot place the order. Wallet amount will exceed $maxLimitForWallet")
             return false
         }
         return true
@@ -178,8 +183,8 @@ class OrderValidation {
 
     fun isInventoryWithinLimit(list:ArrayList<String>,user:User, inventory:Int):Boolean{
 
-        if(user.inventory_free + user.inventory_locked+ user.perf_free + user.perf_locked + user.pendingCreditEsop +inventory > 10000000){
-            list.add("Cannot place the order. Total Inventory will exceed 10000000")
+        if(user.inventory_free + user.inventory_locked+ user.perf_free + user.perf_locked + user.pendingCreditEsop +inventory > maxLimitForInventory){
+            list.add("Cannot place the order. Total Inventory will exceed $maxLimitForInventory")
             return false
         }
         return true
@@ -187,11 +192,4 @@ class OrderValidation {
 
 }
 
-class DataTypeValidation{
-    fun isDataTypeValid(list: ArrayList<String>,input:Any,reqType:String)
-    {
-        println(input::class.simpleName==reqType)
-        if(input==null||input::class.simpleName==reqType)
-            list.add("Invalid Order type")
-    }
-}
+

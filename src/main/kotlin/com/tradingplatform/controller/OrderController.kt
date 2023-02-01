@@ -1,7 +1,7 @@
 package com.tradingplatform.controller
 
-import OrderValidation
-import UserValidation
+import com.tradingplatform.validations.OrderValidation
+import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
