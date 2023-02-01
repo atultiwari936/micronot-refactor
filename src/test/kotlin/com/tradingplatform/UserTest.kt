@@ -21,7 +21,10 @@ class UserTest {
         "check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665",
         "check@sahaj.a",
         "checksahaj.ai",
-        "checksahajai"
+        "checksahajai",
+        " ",
+        "",
+        "8934"
     ])
     fun `Test should check if the user email is invalid`(email :String)
     {

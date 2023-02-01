@@ -30,29 +30,25 @@ class UserValidation {
         }
         val parts = email.split("@")
         val subDomains=parts[1].split(".")
-         if(parts[0].length>64||parts[1].length>255)
+         if(parts[0].length>64||parts[1].length>255||subDomains[subDomains.size-1].length<2)
         {
-            list.add("Max email length exceeded")
+            list.add("Invalid email format")
+            return false
         }
         for(subdomain in subDomains)
         {
             if(subdomain.length>63)
             {
-                list.add("Max subdomain length exceeded")
-                break
+                list.add("Invalid email format")
+                return false
             }
         }
-        if (subDomains[subDomains.size-1].length<2)
-        {
-            list.add("Last subdomain length should be greater than 2")
-        }
-        else if(!isEmailUnique(email))
+        if(!isEmailUnique(email))
         {
             list.add("Email is already registered")
+            return false
         }
-        if(list.isEmpty())
             return true
-        return false
     }
 
     private fun isEmailUnique(email: String):Boolean
