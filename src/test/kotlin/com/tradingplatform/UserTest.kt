@@ -1,9 +1,12 @@
 package com.tradingplatform
 
-import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
 import com.tradingplatform.model.*
+import com.tradingplatform.validations.UserValidation
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import io.restassured.specification.RequestSpecification
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
+@MicronautTest
 class UserTest {
     @BeforeEach
     fun `Tear down existing data`() {
@@ -122,7 +126,6 @@ class UserTest {
         Assertions.assertEquals(false, actualResponse)
     }
 
-
     @Test
     fun `Test if user not exist while adding inventory`() {
 
@@ -186,6 +189,31 @@ class UserTest {
     }
 
 
+    @Test
+    fun `should register user if given valid data with success message`(spec: RequestSpecification) {
+        val registerBody = User(firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com",
+            phoneNumber = "+912345678977", userName = "atul_99"
+        )
 
+        spec.`when`()
+            .header("Content-Type", "application/json")
+            .body(registerBody)
+            .post("/user/register")
+            .then()
+            .statusCode(200).and()
+            .body("message", Matchers.comparesEqualTo("User registered successfully"))
+    }
 
+    @Test
+    fun `should return field missing message if field not found in request body`(spec: RequestSpecification) {
+        spec.`when`()
+            .header("Content-Type", "application/json")
+            .body("{\"firstName\":\"Atul\", \"lastName\":\"Tiwari\"}")
+            .post("/user/register")
+            .then()
+            .statusCode(400).and()
+            .body("error", Matchers.contains("Enter the userName field", "Enter the phoneNumber field",
+                "Enter the email field")
+            )
+    }
 }
