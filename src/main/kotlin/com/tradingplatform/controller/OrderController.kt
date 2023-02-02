@@ -21,124 +21,25 @@ class OrderController {
     fun orderHistory(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
-        val userOrders: HashMap<Int, OrderHistory> = hashMapOf()
+        val allOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
 
+        
         UserValidation().isUserExists(errorList, userName)
 
         if (errorList.isNotEmpty()) {
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
-
+            
+        
         val userOrderIds = Users[userName]!!.orders
-        for (orderId in userOrderIds) {
+        
+        allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
+        allOrdersOfUser.addAll(getAllPendingBuyOrdersOfUser(userName))
+        allOrdersOfUser.addAll(getAllPendingSellOrdersOfUser(userName))
+        
 
-            if (CompletedOrders.containsKey(orderId)) {
-
-                if (!userOrders.contains(orderId.first)) {
-                    val currOrder = CompletedOrders[orderId]
-                    val partialOrderHistory = OrderHistory(
-                        currOrder!!.type,
-                        currOrder.qty,
-                        currOrder.price,
-                        currOrder.createdBy,
-                        currOrder.esopType
-                    )
-                    partialOrderHistory.id = currOrder.id.first
-                    partialOrderHistory.status = "filled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp), ZoneOffset.UTC)
-                            .format(format).toString()
-                    partialOrderHistory.filledQty = currOrder.filledQty
-                    partialOrderHistory.filled = currOrder.filled
-
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-                    val exisitingOrder = CompletedOrders[orderId]
-
-                    currOrder!!.filledQty += exisitingOrder!!.filledQty
-                    currOrder!!.filled.addAll(exisitingOrder.filled)
-                }
-            }
-        }
-
-        for (order in BuyOrders) {
-            if (userName == order.createdBy) {
-
-                val orderId = order.id
-
-
-
-                if (!userOrders.contains(orderId.first)) {
-                    val partialOrderHistory = OrderHistory(
-                        order!!.type,
-                        order.qty,
-                        order.price,
-                        order.createdBy,
-                        order.esopType
-                    )
-                    partialOrderHistory.id = order.id.first
-                    partialOrderHistory.status = "unfilled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
-                            .toString()
-                    partialOrderHistory.filledQty = order.filledQty
-                    partialOrderHistory.filled = order.filled
-
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-
-                    currOrder!!.filledQty += order!!.filledQty
-                    currOrder!!.filled.addAll(order.filled)
-                }
-            }
-        }
-
-        for (order in SellOrders) {
-            if (userName == order.createdBy) {
-                val orderId = order.id
-
-                if (!userOrders.contains(orderId.first)) {
-
-                    val partialOrderHistory = OrderHistory(
-                        order!!.type,
-                        order.qty,
-                        order.price,
-                        order.createdBy,
-                        order.esopType
-                    )
-                    partialOrderHistory.id = order.id.first
-                    partialOrderHistory.status = "unfilled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
-                            .toString()
-                    partialOrderHistory.filledQty = order.filledQty
-                    partialOrderHistory.filled = order.filled
-
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-
-                    currOrder!!.filledQty += order!!.filledQty
-                    currOrder!!.filled.addAll(order.filled)
-                }
-
-            }
-        }
-
-        val listOfOrders: MutableCollection<OrderHistory> = userOrders.values
-
-
-        for (individualOrder in listOfOrders) {
-            if (individualOrder.qty == individualOrder.filledQty)
-                individualOrder.status = "filled"
-            else if (individualOrder.filledQty == 0)
-                individualOrder.status = "unfilled"
-            else
-                individualOrder.status = "partially filled"
-
+        for (individualOrder in allOrdersOfUser) {
 
             val transOfIndividualOrder = individualOrder.filled
 
@@ -153,17 +54,99 @@ class OrderController {
                     transIndexAtPrice[transPriceAndQty.price] = transAtSamePrice.size - 1
                 }
             }
-
             individualOrder.filled = transAtSamePrice
         }
-
-
-
-        return HttpResponse.ok(listOfOrders)
+        return HttpResponse.ok(allOrdersOfUser)
 
     }
 
 
+    fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): Collection<OrderHistory> {
+        
+        val completedOrders: MutableList<OrderHistory> = mutableListOf()
+        for (orderId in userOrderIds) {
+            if (CompletedOrders.containsKey(orderId)) {
+                    val currOrder = CompletedOrders[orderId]
+                    val partialOrderHistory = OrderHistory(
+                        currOrder!!.type,
+                        currOrder.qty,
+                        currOrder.price,
+                        currOrder.createdBy,
+                        currOrder.esopType
+                    )
+                    partialOrderHistory.id = currOrder.id.first
+                    partialOrderHistory.status = "filled"
+                    partialOrderHistory.filledQty = currOrder.filledQty
+                    partialOrderHistory.filled = currOrder.filled
+                    completedOrders.add(partialOrderHistory)
+            }
+        }
+        return completedOrders
+    }
+
+
+    fun getAllPendingSellOrdersOfUser(userName: String): Collection<OrderHistory> {
+
+        val pendingSellOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
+        for (order in SellOrders) {
+            if (userName == order.createdBy) {
+                val orderId = order.id
+
+
+                val partialOrderHistory = OrderHistory(
+                    order!!.type,
+                    order.qty,
+                    order.price,
+                    order.createdBy,
+                    order.esopType
+                )
+                partialOrderHistory.id = order.id.first
+                partialOrderHistory.status = "unfilled"
+                
+                partialOrderHistory.filledQty = order.filledQty
+                partialOrderHistory.filled = order.filled
+
+                pendingSellOrdersOfUser.add(partialOrderHistory)
+            }
+        }
+        return pendingSellOrdersOfUser
+    }    
+
+    fun getAllPendingBuyOrdersOfUser(userName: String) :  Collection<OrderHistory> {
+
+        val pendingBuyOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
+        for (order in BuyOrders) {
+            if (userName == order.createdBy) {
+
+                val orderId = order.id
+
+                val partialOrderHistory = OrderHistory(
+                        order!!.type,
+                        order.qty,
+                        order.price,
+                        order.createdBy,
+                        order.esopType
+                    )
+                    partialOrderHistory.id = order.id.first
+                    partialOrderHistory.status = order.status
+                    partialOrderHistory.filledQty = order.filledQty
+                    partialOrderHistory.filled = order.filled
+                    
+                    pendingBuyOrdersOfUser.add(partialOrderHistory)
+                }
+            }
+            return pendingBuyOrdersOfUser
+        }
+
+
+    
+    
+    
+    
+    
+    
+    
+    
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName: String): Any {
         val response = mutableMapOf<String, Any>()
