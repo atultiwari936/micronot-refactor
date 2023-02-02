@@ -11,7 +11,7 @@ const val esopPerformance = 1
 data class PriceQtyPair(val price: Int, var quantity: Int) //Utility class to make the response json pretty
 
 data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esopType: Int= esopNormal) {
-    private var status = "unfilled"
+     var status = "unfilled"
     var filled = ArrayList<PriceQtyPair>()
     val id:Pair<Int,Int> = Pair(BuyOrders.size + SellOrders.size + CompletedOrders.size*2,esopType)
     val timestamp = System.currentTimeMillis()
