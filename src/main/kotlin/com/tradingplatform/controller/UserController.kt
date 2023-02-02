@@ -24,7 +24,7 @@ class UserController {
                 errorList.add("Enter the $field field")
                 errorResponse["error"] = errorList
             } else if (body[field] == null || !body[field]!!.isString) {
-                errorList.add("$field Data type not in valid format")
+                errorList.add("$field data type not in valid format")
                 errorResponse["error"] = errorList
             }
         }
@@ -56,7 +56,7 @@ class UserController {
         addUser(userData)
 
         val okResponse = HashMap<String, String>()
-        okResponse["message"] = "User Registered successfully"
+        okResponse["message"] = "User registered successfully"
 
         return HttpResponse.ok(okResponse)
     }

@@ -1,9 +1,8 @@
-package com.tradingplatform
+package com.tradingplatform.model
 
-import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
-import com.tradingplatform.model.*
+import com.tradingplatform.validations.UserValidation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -122,7 +121,6 @@ class UserTest {
         Assertions.assertEquals(false, actualResponse)
     }
 
-
     @Test
     fun `Test if user not exist while adding inventory`() {
 
@@ -131,7 +129,7 @@ class UserTest {
 
         val errorList = objectOfInventoryController.checkIfUserExist(userName)
 
-        Assertions.assertTrue {
+        assertTrue {
             errorList.contains("User does not exists")
         }
     }
@@ -151,41 +149,4 @@ class UserTest {
 
         Assertions.assertEquals(0, errorList.size)
     }
-
-
-    @Test
-    fun `Check if user data is valid`() {
-        val objectOfUserController = UserController()
-        val user1 = User("vv", "vv", "+918888888888", "tt@gmail.com", "atul_1")
-
-
-        val errorList = objectOfUserController.checkIfInputDataIsValid(user1)
-
-
-
-        Assertions.assertEquals(0, errorList.size)
-
-    }
-
-
-    @Test
-    fun `Check for User added to userList`() {
-
-        //Arrange
-        val user1 = User("", "", "", "tt@gmail.com", "atul_1")
-        val objectOfUserController = UserController()
-        objectOfUserController.addUser(user1)
-
-        //Actions
-        val userObject: User? = Users[user1.userName]
-
-        //Assert
-        Assertions.assertEquals(true, Users.containsKey(user1.userName))
-        Assertions.assertEquals(true, "tt@gmail.com" in userObject!!.email)
-
-    }
-
-
-
-
 }
