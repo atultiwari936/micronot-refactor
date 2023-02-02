@@ -149,4 +149,34 @@ class UserTest {
 
         Assertions.assertEquals(0, errorList.size)
     }
+
+    @Test
+    fun `Check if username is unique`() {
+        val user = User(
+            firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com", phoneNumber = "+919877678987",
+            userName = "atul"
+        )
+        UserController().addUser(user)
+        val errorList = arrayListOf<String>()
+
+        val actualResponse = UserValidation().isUserNameValid(errorList, "atul")
+
+        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(errorList[0], "Username already registered")
+    }
+
+    @Test
+    fun `Check if phoneNumber is unique`() {
+        val user = User(
+            firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com", phoneNumber = "+919877678987",
+            userName = "atul"
+        )
+        UserController().addUser(user)
+        val errorList = arrayListOf<String>()
+
+        val actualResponse = UserValidation().isPhoneValid(errorList, "+919877678987")
+
+        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(errorList[0], "phoneNumber already registered")
+    }
 }
