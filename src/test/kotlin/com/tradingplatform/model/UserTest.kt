@@ -1,9 +1,7 @@
-package com.tradingplatform
+package com.tradingplatform.model
 
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
-import com.tradingplatform.model.User
-import com.tradingplatform.model.Users
 import com.tradingplatform.validations.UserValidation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -131,7 +129,7 @@ class UserTest {
 
         val errorList = objectOfInventoryController.checkIfUserExist(userName)
 
-        Assertions.assertTrue {
+        assertTrue {
             errorList.contains("User does not exists")
         }
     }
