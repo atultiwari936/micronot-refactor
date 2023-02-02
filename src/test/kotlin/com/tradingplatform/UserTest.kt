@@ -1,15 +1,65 @@
 package com.tradingplatform
 
-import UserValidation
+import com.tradingplatform.validations.UserValidation
+import com.tradingplatform.controller.InventoryController
+import com.tradingplatform.controller.UserController
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
 class UserTest {
     @BeforeEach
     fun `Tear down existing data`() {
         Users.clear()
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+        check@sahaj..ai.com
+        check@sahaj--ai.com
+        check@sahaj.911emergency.com
+        check@a123456789a123456789a123456789a123456789a123456789a1234567891233.com
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.g665
+        check@sahaj.a
+        checksahaj.ai
+        checksahajai
+        check@jhsd#kjn.com
+        check@12sjhd.co.in
+        8934"""
+    )
+    fun `email validation should return proper error message`(email: String) {
+        val errorMessages = UserValidation().isEmailValid(email)
+
+        assertTrue {
+            errorMessages.contains("Invalid email format")
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+        check@sahaj.ai.com
+        check@sahaj-ai.com
+        check@sahaj.e44mergency.com4
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.com
+        check@sahaj.co.in.com.hi89
+        check@sahaj.ai.co.in
+        check@s23haj.h67
+        check@s-o-m-e-t-h-i-n-g.ai
+        check@a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123.a123456789a123456789a123456789a123456789a123456789a123456789123
+        check@sahaj.ai
+        checks-ahaj@ai.ai"""
+    )
+    fun `proper email address should not have any error message`(email: String) {
+
+        val errorMessages = UserValidation().isEmailValid(email)
+
+        assertTrue(errorMessages.isEmpty())
     }
 
     @Test
@@ -71,4 +121,71 @@ class UserTest {
 
         Assertions.assertEquals(false, actualResponse)
     }
+
+
+    @Test
+    fun `Test if user not exist while adding inventory`() {
+
+        val objectOfInventoryController = InventoryController()
+        val userName = "vishal898"
+
+        val errorList = objectOfInventoryController.checkIfUserExist(userName)
+
+        Assertions.assertTrue {
+            errorList.contains("User does not exists")
+        }
+    }
+
+
+    @Test
+    fun `Test if user exist while adding inventory`() {
+        //Arrange
+        val user1 = User("atul", "tiwari", "+918888888888", "tt@gmail.com", "atul_1")
+        val objectOfUserController = UserController()
+        objectOfUserController.addUser(user1)
+        val objectOfInventoryController = InventoryController()
+        val userName = "atul_1"
+
+        val errorList = objectOfInventoryController.checkIfUserExist(userName)
+
+
+        Assertions.assertEquals(0, errorList.size)
+    }
+
+
+    @Test
+    fun `Check if user data is valid`() {
+        val objectOfUserController = UserController()
+        val user1 = User("vv", "vv", "+918888888888", "tt@gmail.com", "atul_1")
+
+
+        val errorList = objectOfUserController.checkIfInputDataIsValid(user1)
+
+
+
+        Assertions.assertEquals(0, errorList.size)
+
+    }
+
+
+    @Test
+    fun `Check for User added to userList`() {
+
+        //Arrange
+        val user1 = User("", "", "", "tt@gmail.com", "atul_1")
+        val objectOfUserController = UserController()
+        objectOfUserController.addUser(user1)
+
+        //Actions
+        val userObject: User? = Users[user1.userName]
+
+        //Assert
+        Assertions.assertEquals(true, Users.containsKey(user1.userName))
+        Assertions.assertEquals(true, "tt@gmail.com" in userObject!!.email)
+
+    }
+
+
+
+
 }

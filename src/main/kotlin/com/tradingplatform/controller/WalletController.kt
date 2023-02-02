@@ -1,7 +1,7 @@
 package com.tradingplatform.controller
 
-import OrderValidation
-import UserValidation
+import com.tradingplatform.validations.OrderValidation
+import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.Users
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
@@ -19,35 +19,35 @@ class WalletController {
     fun addWallet(@Body body: JsonObject, @PathVariable userName:String): MutableHttpResponse<out Any>? {
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, MutableList<String>>();
-        response["error"] = errorList;
+        val response = mutableMapOf<String, MutableList<String>>()
+        response["error"] = errorList
         UserValidation().isUserExists(errorList,userName)
 
-
+        val amount =body["amount"]
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        if(body["amount"]==null)
+        if(amount==null)
         {
             errorList.add("Enter the amount field")
 
             return HttpResponse.badRequest(response)
         }
-        if(!body["amount"].isNumber || (ceil(body["amount"].doubleValue).roundToInt()!=body["amount"].intValue)) {
+        if(!amount.isNumber || (ceil(amount.doubleValue).roundToInt()!=amount.intValue)) {
             errorList.add("Amount data type is invalid")
         }
-        else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue, "amount"))
+        else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue))
             OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].doubleValue)
 
 
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        addAmountToWallet(userName,body["amount"].intValue)
-        responseMap["message"] = "${body["amount"].intValue} added to account"
+        addAmountToWallet(userName,amount.intValue)
+        responseMap["message"] = "${amount.intValue} added to account"
         return HttpResponse.ok(responseMap)
     }
 
     fun addAmountToWallet(userName: String,amount:Int)
     {
-        Users[userName]?.wallet_free = Users[userName]?.wallet_free?.plus(amount)!!
+        Users[userName]?.walletFree = Users[userName]?.walletFree?.plus(amount)!!
     }
 
 

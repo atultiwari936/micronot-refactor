@@ -1,70 +1,83 @@
+package com.tradingplatform.validations
+
 import com.tradingplatform.model.User
 import com.tradingplatform.model.Users
 import io.micronaut.json.tree.JsonObject
 
+const val maxLimitForWallet = 10000000
+const val maxLimitForInventory = 100000000
+
 class UserValidation {
-    val emailRegex="([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+[a-zA-Z]{2,}"
-    val userNameRegex="([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
-    val nameRegex="^[a-zA-z ]*\$"
-    val phoneNumberRegex="^[+]+[0-9]{1,3}[0-9]{10}\$"
-    fun isUserExists(list: ArrayList<String>,userName: String)
-    {
-        if(userName==null) {
+    private val emailRegex =
+        "([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
+    private val userNameRegex = "([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
+    private val nameRegex = "^[a-zA-z ]*\$"
+    private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
+    fun isUserExists(list: ArrayList<String>, userName: String) {
+        if (userName == null) {
             list.add("Username is Null")
             return
         }
         if(!Users.containsKey(userName))
-            list.add("User Not Exist")
-    }
-    fun isEmailValid (list :ArrayList<String>,email:String)
-    {
-        var delimiter = "@"
-        val parts = email.split(delimiter)
-        if(!(email.isNotEmpty() && emailRegex.toRegex().matches(email)))
-        {
-            list.add("Invalid Email format")
-        }
-        else if(parts[0].length>64||parts[1].length>255)
-        {
-            list.add("max email length exceeded")
-        }
-        else if(!isEmailUnique(email))
-        {
-            list.add("Email Id already registered")
-        }
+            list.add("User does not exists")
     }
 
-    private fun isEmailUnique(email: String):Boolean
-    {
-        for (user in Users.keys) {
-            if(Users[user]!!.email==email)
-            {
-                return false
+    private fun isEmailAsPerRegex(email: String): List<String> {
+        if (!(email.isNotEmpty() && emailRegex.toRegex().matches(email))) {
+            return listOf("Invalid email format")
+        }
+        return emptyList()
+    }
+
+    private fun isEmailInSpecifiedLength(email: String): List<String> {
+        val errorList = arrayListOf<String>()
+        val parts = email.split("@")
+        val subDomains = parts[1].split(".")
+        if (parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
+            return listOf("Invalid email format")
+        }
+        for (subDomain in subDomains) {
+            if (subDomain.length > 63) {
+                return listOf("Invalid email format")
             }
         }
-        return true
+        return errorList
     }
 
-    fun isPhoneValid (list :ArrayList<String>,phoneNumber:String): Boolean
-    {
-        if(!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber)))
-        {
+    fun isEmailValid(email: String): List<String> {
+        val errorList = arrayListOf<String>()
+        errorList.addAll(isEmailAsPerRegex(email))
+        if(errorList.isNotEmpty()) return errorList
+        errorList.addAll(isEmailInSpecifiedLength(email))
+        if(errorList.isNotEmpty()) return errorList
+        errorList.addAll(isEmailUnique(email))
+        return errorList
+    }
+
+    private fun isEmailUnique(email: String): List<String> {
+        val errorList = arrayListOf<String>()
+        for (user in Users.keys) {
+            if (Users[user]!!.email == email) {
+                errorList.add("Email is already registered")
+            }
+        }
+        return errorList
+    }
+
+    fun isPhoneValid(list: ArrayList<String>, phoneNumber: String): Boolean {
+        if (!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber))) {
             list.add("Invalid PhoneNumber format")
             return false
-        }
-        else if(!isPhoneUnique(phoneNumber))
-        {
+        } else if (!isPhoneUnique(phoneNumber)) {
             list.add("Phone Number already registered")
             return false
         }
         return true
     }
 
-    private fun isPhoneUnique(phoneNumber: String):Boolean
-    {
+    private fun isPhoneUnique(phoneNumber: String): Boolean {
         for (user in Users.keys) {
-            if(Users[user]!!.phoneNumber==phoneNumber)
-            {
+            if (Users[user]!!.phoneNumber == phoneNumber) {
                 return false
             }
         }
@@ -72,27 +85,20 @@ class UserValidation {
     }
 
 
-
-    fun isUserNameValid (list :ArrayList<String>,userName:String): Boolean
-    {
-        if(!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName)))
-        {
+    fun isUserNameValid(list: ArrayList<String>, userName: String): Boolean {
+        if (!(userName.isNotEmpty() && userNameRegex.toRegex().matches(userName))) {
             list.add("Invalid Username format")
             return false
-        }
-        else if(!isUnameUnique(userName))
-        {
+        } else if (!isUnameUnique(userName)) {
             list.add("Username already registered")
             return false
         }
         return true
     }
 
-    private fun isUnameUnique(userName: String):Boolean
-    {
+    private fun isUnameUnique(userName: String): Boolean {
         for (user in Users.keys) {
-            if(Users[user]!!.userName==userName)
-            {
+            if (Users[user]!!.userName == userName) {
                 return false
             }
         }
@@ -100,18 +106,15 @@ class UserValidation {
     }
 
 
-    fun isNameValid (list :ArrayList<String>,name:String) : Boolean
-    {
-        if(!(name.isNotEmpty()&& nameRegex.toRegex().matches(name)))
-        {
+    fun isNameValid(list: ArrayList<String>, name: String): Boolean {
+        if (!(name.isNotEmpty() && nameRegex.toRegex().matches(name))) {
             list.add("Invalid Name format")
             return false
         }
         return true
     }
 
-    fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
-    {
+    fun isFieldExists(fieldName: String, body: JsonObject): Boolean {
         return body[fieldName] == null
     }
 
@@ -119,29 +122,28 @@ class UserValidation {
 
 
 class OrderValidation {
-    fun isValidAmount(list:ArrayList<String>,amount :Int, fieldName: String):Boolean
+    fun isValidAmount(list:ArrayList<String>,amount :Int):Boolean
     {
         if(amount<=0)
         {
-            list.add("Enter a positive $fieldName")
+            list.add("Enter a positive amount")
             return false
         }
-        else if(amount>10000000)
+        else if(amount> maxLimitForWallet)
         {
 
-            list.add("Enter $fieldName between 0 to 10000000")
+            list.add("Enter amount between 0 to $maxLimitForWallet")
             return false
         }
         return true
 
     }
 
-    fun isFieldExists(fieldName:String, body: JsonObject ): Boolean
-    {
+    fun isFieldExists(fieldName: String, body: JsonObject): Boolean {
         return body[fieldName] == null
     }
 
-    fun isValidEsopType(list:ArrayList<String>, esopType: String) : Boolean {
+    fun isValidEsopType(list: ArrayList<String>, esopType: String): Boolean {
         if (esopType == "PERFORMANCE" || esopType == "NORMAL") {
             return true
         }
@@ -152,9 +154,9 @@ class OrderValidation {
 
     fun isValidQuantity(list:ArrayList<String>,amount :Int):Boolean
     {
-        if(amount<=0 || amount>10000000)
+        if(amount<=0 || amount> maxLimitForInventory)
         {
-            list.add("Quantity is not valid. Range between 1 and 10000000")
+            list.add("Quantity is not valid. Range between 1 and $maxLimitForInventory")
             return false
         }
         return true
@@ -162,24 +164,23 @@ class OrderValidation {
 
     fun isValidOrderType(list:ArrayList<String>,type:String)
     {
-       var array = arrayListOf<String>("PERFORMANCE")
+        val array = arrayListOf("PERFORMANCE")
         if(type !in array)
             list.add("Invalid Order type (Allowed : PERFORMANCE)")
 
     }
 
     fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
-        if(user.wallet_free + user.wallet_locked+ user.pendingCreditAmount + amount > 10000000){
-            list.add("Cannot place the order. Wallet amount will exceed 10000000")
+        if(user.walletFree + user.walletLocked+ user.pendingCreditAmount + amount > maxLimitForWallet){
+            list.add("Cannot place the order. Wallet amount will exceed $maxLimitForWallet")
             return false
         }
         return true
     }
 
     fun isInventoryWithinLimit(list:ArrayList<String>,user:User, inventory:Int):Boolean{
-
-        if(user.inventory_free + user.inventory_locked+ user.perf_free + user.perf_locked + user.pendingCreditEsop +inventory > 10000000){
-            list.add("Cannot place the order. Total Inventory will exceed 10000000")
+        if(user.inventoryFree + user.inventoryLocked+ user.perfFree + user.perfLocked + user.pendingCreditEsop +inventory > maxLimitForInventory){
+            list.add("Cannot place the order. Total Inventory will exceed $maxLimitForInventory")
             return false
         }
         return true
@@ -187,11 +188,4 @@ class OrderValidation {
 
 }
 
-class DataTypeValidation{
-    fun isDataTypeValid(list: ArrayList<String>,input:Any,reqType:String)
-    {
-        println(input::class.simpleName==reqType)
-        if(input==null||input::class.simpleName==reqType)
-            list.add("Invalid Order type")
-    }
-}
+
