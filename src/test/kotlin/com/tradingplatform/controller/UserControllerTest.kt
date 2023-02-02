@@ -5,6 +5,7 @@ import com.tradingplatform.model.Users
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -55,13 +56,21 @@ class UserControllerTest {
 
         //Assert
         spec.`when`().get("/user/atul_99/accountInformation").then().statusCode(200).and()
-            .body("firstName", Matchers.equalTo("Atul")).body("lastName", Matchers.equalTo("Tiwari"))
-            .body("email", Matchers.equalTo("atul@gmail.com")).body("phoneNumber", Matchers.equalTo("+912345678977"))
-            .body("wallet.free", Matchers.equalTo(0)).body("wallet.locked", Matchers.equalTo(0))
-            .body("inventory[0].free", Matchers.equalTo(0)).body("inventory[0].locked", Matchers.equalTo(0))
-            .body("inventory[0].type", Matchers.equalTo("NON_PERFORMANCE"))
-            .body("inventory[1].free", Matchers.equalTo(0)).body("inventory[1].locked", Matchers.equalTo(0))
-            .body("inventory[1].type", Matchers.equalTo("PERFORMANCE"))
+            .body(
+                "firstName", equalTo("Atul"),
+                "lastName", equalTo("Tiwari"),
+                "email", equalTo("atul@gmail.com"),
+                "phoneNumber", equalTo("+912345678977"),
+                "wallet.free", equalTo(0),
+                "wallet.locked", equalTo(0),
+                "inventory[0].free", equalTo(0),
+                "inventory[0].locked", equalTo(0),
+                "inventory[0].type", equalTo("NON_PERFORMANCE"),
+                "inventory[1].free", equalTo(0),
+                "inventory[1].locked", equalTo(0),
+                "inventory[1].type", equalTo("PERFORMANCE"),
+            )
+
     }
 
     @Test
