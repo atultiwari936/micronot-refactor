@@ -66,7 +66,7 @@ class InventoryController {
         if(type=="PERFORMANCE")
         {
             Users[userName]!!.perfFree+=esopQuantity
-            return ("${esopQuantity} Performance ESOPs added to account")
+            return ("${esopQuantity} ${type} ESOPs added to account")
         }
 
         Users[userName]!!.inventoryFree+=esopQuantity
