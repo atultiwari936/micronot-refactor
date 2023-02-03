@@ -34,7 +34,6 @@ class UserTest {
     )
     fun `email validation should return proper error message`(email: String) {
         val errorMessages = UserValidation().isEmailValid(email)
-        println(errorMessages)
         assertTrue {
             errorMessages.contains("Invalid email format")
         }
