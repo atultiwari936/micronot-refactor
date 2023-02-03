@@ -6,16 +6,11 @@ import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Controller(value = "/user")
 class OrderController {
-    private var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
 
     @Get(value = "/{userName}/order")
     fun orderHistory(@QueryValue userName: String): Any? {
@@ -61,7 +56,7 @@ class OrderController {
     }
 
 
-    fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): Collection<OrderHistory> {
+    private fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): Collection<OrderHistory> {
         
         val completedOrders: MutableList<OrderHistory> = mutableListOf()
         for (orderId in userOrderIds) {
@@ -85,13 +80,11 @@ class OrderController {
     }
 
 
-    fun getAllPendingSellOrdersOfUser(userName: String): Collection<OrderHistory> {
+    private fun getAllPendingSellOrdersOfUser(userName: String): Collection<OrderHistory> {
 
         val pendingSellOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
         for (order in SellOrders) {
             if (userName == order.createdBy) {
-                val orderId = order.id
-
 
                 val partialOrderHistory = OrderHistory(
                     order!!.type,
@@ -112,13 +105,11 @@ class OrderController {
         return pendingSellOrdersOfUser
     }    
 
-    fun getAllPendingBuyOrdersOfUser(userName: String) :  Collection<OrderHistory> {
+    private fun getAllPendingBuyOrdersOfUser(userName: String) :  Collection<OrderHistory> {
 
         val pendingBuyOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
         for (order in BuyOrders) {
             if (userName == order.createdBy) {
-
-                val orderId = order.id
 
                 val partialOrderHistory = OrderHistory(
                         order!!.type,
