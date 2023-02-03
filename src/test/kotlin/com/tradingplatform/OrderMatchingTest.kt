@@ -1,9 +1,6 @@
 package com.tradingplatform
 
-import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.OrderController
-import com.tradingplatform.controller.UserController
-import com.tradingplatform.controller.WalletController
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
