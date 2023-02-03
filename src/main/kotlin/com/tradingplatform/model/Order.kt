@@ -174,7 +174,6 @@ data class OrderHistory constructor(val type : String, val qty: Int, val price :
     var status = "unfilled"
     var filled = ArrayList<PriceQtyPair>()
     var id: Int = 0
-    lateinit var timestamp:String
     var filledQty = 0
 }
 
