@@ -9,7 +9,7 @@ import java.math.BigInteger
 @Controller("/platform")
 class PlatformController {
     @Get("/fees")
-    fun getTotalCollectedPlatfromFees():HttpResponse<*>{
+    fun getTotalCollectedPlatformFees():HttpResponse<*>{
         val responseMap:MutableMap<String,BigInteger> = mutableMapOf()
         responseMap["collectedFees"] = PlatformData.feesEarned
         return HttpResponse.ok(responseMap)
