@@ -29,7 +29,7 @@ class UserValidation {
         val errorList = arrayListOf<String>()
         val parts = email.split("@")
         val subDomains = parts[1].split(".")
-        if (parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
+        if (subDomains.size>4 ||parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
             return listOf("Invalid email format")
         }
         for (subDomain in subDomains) {

@@ -27,13 +27,14 @@ class UserTest {
         check@sahaj.a
         checksahaj.ai
         checksahajai
+        check@sahaj.co.in.com89.in
         check@jhsd#kjn.com
         check@12sjhd.co.in
         8934"""
     )
     fun `email validation should return proper error message`(email: String) {
         val errorMessages = UserValidation().isEmailValid(email)
-
+        println(errorMessages)
         assertTrue {
             errorMessages.contains("Invalid email format")
         }
@@ -46,7 +47,7 @@ class UserTest {
         check@sahaj-ai.com
         check@sahaj.e44mergency.com4
         check@a123456789a123456789a123456789a123456789a123456789a123456789123.com
-        check@sahaj.co.in.com.hi89
+        check@sahaj.co.in.com
         check@sahaj.ai.co.in
         check@s23haj.h67
         check@s-o-m-e-t-h-i-n-g.ai
