@@ -14,7 +14,7 @@ class UserValidation {
     private val nameRegex = "^[a-zA-z ]*\$"
     private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
     fun isUserExists(list: ArrayList<String>, userName: String) {
-        if(!Users.containsKey(userName))
+        if (!Users.containsKey(userName))
             list.add("User does not exists")
     }
 
@@ -29,7 +29,7 @@ class UserValidation {
         val errorList = arrayListOf<String>()
         val parts = email.split("@")
         val subDomains = parts[1].split(".")
-        if (parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
+        if (subDomains.size > 4 || parts[0].length > 64 || parts[1].length > 255 || subDomains[subDomains.size - 1].length < 2) {
             return listOf("Invalid email format")
         }
         for (subDomain in subDomains) {
@@ -43,9 +43,9 @@ class UserValidation {
     fun isEmailValid(email: String): List<String> {
         val errorList = arrayListOf<String>()
         errorList.addAll(isEmailAsPerRegex(email))
-        if(errorList.isNotEmpty()) return errorList
+        if (errorList.isNotEmpty()) return errorList
         errorList.addAll(isEmailInSpecifiedLength(email))
-        if(errorList.isNotEmpty()) return errorList
+        if (errorList.isNotEmpty()) return errorList
         errorList.addAll(isEmailUnique(email))
         return errorList
     }
@@ -118,15 +118,11 @@ class UserValidation {
 
 
 class OrderValidation {
-    fun isValidAmount(list:ArrayList<String>,amount :Int):Boolean
-    {
-        if(amount<=0)
-        {
+    fun isValidAmount(list: ArrayList<String>, amount: Int): Boolean {
+        if (amount <= 0) {
             list.add("Enter a positive amount")
             return false
-        }
-        else if(amount> maxLimitForWallet)
-        {
+        } else if (amount > maxLimitForWallet) {
 
             list.add("Enter amount between 0 to $maxLimitForWallet")
             return false
@@ -148,26 +144,24 @@ class OrderValidation {
         return false
     }
 
-    fun isValidQuantity(list:ArrayList<String>,amount :Int):Boolean
-    {
-        if(amount<=0 || amount> maxLimitForInventory)
-        {
+    fun isValidQuantity(list: ArrayList<String>, amount: Int): Boolean {
+        if (amount <= 0 || amount > maxLimitForInventory) {
             list.add("Quantity is not valid. Range between 1 and $maxLimitForInventory")
             return false
         }
         return true
     }
 
-    fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
-        if(user.walletFree + user.walletLocked+ user.pendingCreditAmount + amount > maxLimitForWallet){
+    fun isWalletAmountWithinLimit(list: ArrayList<String>, user: User, amount: Double): Boolean {
+        if (user.walletFree + user.walletLocked + user.pendingCreditAmount + amount > maxLimitForWallet) {
             list.add("Cannot place the order. Wallet amount will exceed $maxLimitForWallet")
             return false
         }
         return true
     }
 
-    fun isInventoryWithinLimit(list:ArrayList<String>,user:User, inventory:Int):Boolean{
-        if(user.inventoryFree + user.inventoryLocked+ user.perfFree + user.perfLocked + user.pendingCreditEsop +inventory > maxLimitForInventory){
+    fun isInventoryWithinLimit(list: ArrayList<String>, user: User, inventory: Int): Boolean {
+        if (user.inventoryFree + user.inventoryLocked + user.perfFree + user.perfLocked + user.pendingCreditEsop + inventory > maxLimitForInventory) {
             list.add("Cannot place the order. Total Inventory will exceed $maxLimitForInventory")
             return false
         }
