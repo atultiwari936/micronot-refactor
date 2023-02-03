@@ -14,10 +14,6 @@ class UserValidation {
     private val nameRegex = "^[a-zA-z ]*\$"
     private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
     fun isUserExists(list: ArrayList<String>, userName: String) {
-        if (userName == null) {
-            list.add("Username is Null")
-            return
-        }
         if(!Users.containsKey(userName))
             list.add("User does not exists")
     }
@@ -58,7 +54,7 @@ class UserValidation {
         val errorList = arrayListOf<String>()
         for (user in Users.keys) {
             if (Users[user]!!.email == email) {
-                errorList.add("Email is already registered")
+                errorList.add("email is already registered")
             }
         }
         return errorList
@@ -66,10 +62,10 @@ class UserValidation {
 
     fun isPhoneValid(list: ArrayList<String>, phoneNumber: String): Boolean {
         if (!(phoneNumber.isNotEmpty() && phoneNumberRegex.toRegex().matches(phoneNumber))) {
-            list.add("Invalid PhoneNumber format")
+            list.add("Invalid phoneNumber format")
             return false
         } else if (!isPhoneUnique(phoneNumber)) {
-            list.add("Phone Number already registered")
+            list.add("phoneNumber already registered")
             return false
         }
         return true
@@ -160,14 +156,6 @@ class OrderValidation {
             return false
         }
         return true
-    }
-
-    fun isValidOrderType(list:ArrayList<String>,type:String)
-    {
-        val array = arrayListOf("PERFORMANCE")
-        if(type !in array)
-            list.add("Invalid Order type (Allowed : PERFORMANCE)")
-
     }
 
     fun isWalletAmountWithinLimit(list:ArrayList<String>, user: User, amount:Double):Boolean{
