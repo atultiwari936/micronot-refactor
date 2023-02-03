@@ -216,7 +216,7 @@ class OrderController {
             return HttpResponse.badRequest(response)
         }
 
-        return HttpResponse.ok(orderHandler(userName, type, quantity, price, esopType))
+        return orderHandler(userName, type, quantity, price, esopType)
     }
 
     fun orderHandler(userName: String, type: String, quantity: Int, price: Int, esopType: String = "NORMAL"): Any {
@@ -270,15 +270,15 @@ class OrderController {
                         user.orders.add(newOrder.id)
                     }
                 }
-            } else
-                errorList.add("Invalid type given")
-        } else {
+            }
+        }
+        else {
             errorList.add("User doesn't exist")
         }
 
         response["error"] = errorList
         if (errorList.isNotEmpty()) {
-            return response
+            return HttpResponse.badRequest(response)
         }
 
         response["orderId"] = newOrder!!.id.first
@@ -286,7 +286,7 @@ class OrderController {
         response["type"] = type
         response["price"] = price
 
-        return response
+        return HttpResponse.ok(response)
     }
 
 
