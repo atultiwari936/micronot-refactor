@@ -16,24 +16,28 @@ class OrderController {
     fun orderHistory(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
-        val allOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
+        val allOrdersOfUser: MutableList<Order> = mutableListOf()
 
-        
+
         UserValidation().isUserExists(errorList, userName)
 
         if (errorList.isNotEmpty()) {
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
-            
-        
-        val userOrderIds = Users[userName]!!.orders
-        
-        allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
-        allOrdersOfUser.addAll(getAllPendingBuyOrdersOfUser(userName))
-        allOrdersOfUser.addAll(getAllPendingSellOrdersOfUser(userName))
-        
 
+
+        val userOrderIds = Users[userName]!!.orders
+
+        allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
+        allOrdersOfUser.addAll(getAllPendingOrdersOfUser(userName))
+
+        updateTransactionsOfOrder(allOrdersOfUser)
+        return HttpResponse.ok(allOrdersOfUser)
+
+    }
+
+    private fun updateTransactionsOfOrder(allOrdersOfUser: MutableList<Order>) {
         for (individualOrder in allOrdersOfUser) {
 
             val transOfIndividualOrder = individualOrder.filled
@@ -51,93 +55,42 @@ class OrderController {
             }
             individualOrder.filled = transAtSamePrice
         }
-        return HttpResponse.ok(allOrdersOfUser)
-
     }
 
 
-    private fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): Collection<OrderHistory> {
-        
-        val completedOrders: MutableList<OrderHistory> = mutableListOf()
+    private fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): MutableList<Order> {
+
+        val completedOrdersOfUser: MutableList<Order> = mutableListOf()
         for (orderId in userOrderIds) {
             if (CompletedOrders.containsKey(orderId)) {
-                    val currOrder = CompletedOrders[orderId]
-                    val partialOrderHistory = OrderHistory(
-                        currOrder!!.type,
-                        currOrder.qty,
-                        currOrder.price,
-                        currOrder.createdBy,
-                        currOrder.esopType
-                    )
-                    partialOrderHistory.id = currOrder.id.first
-                    partialOrderHistory.status = "filled"
-                    partialOrderHistory.filledQty = currOrder.filledQty
-                    partialOrderHistory.filled = currOrder.filled
-                    completedOrders.add(partialOrderHistory)
+                val currOrder = CompletedOrders[orderId]
+                if (currOrder != null) {
+                    completedOrdersOfUser.add(currOrder)
+                }
             }
         }
-        return completedOrders
+        return completedOrdersOfUser
     }
 
 
-    private fun getAllPendingSellOrdersOfUser(userName: String): Collection<OrderHistory> {
+    private fun getAllPendingOrdersOfUser(userName: String): MutableList<Order> {
 
-        val pendingSellOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
+        val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
         for (order in SellOrders) {
             if (userName == order.createdBy) {
-
-                val partialOrderHistory = OrderHistory(
-                    order!!.type,
-                    order.qty,
-                    order.price,
-                    order.createdBy,
-                    order.esopType
-                )
-                partialOrderHistory.id = order.id.first
-                partialOrderHistory.status = "unfilled"
-                
-                partialOrderHistory.filledQty = order.filledQty
-                partialOrderHistory.filled = order.filled
-
-                pendingSellOrdersOfUser.add(partialOrderHistory)
+                pendingOrdersOfUser.add(order)
             }
         }
-        return pendingSellOrdersOfUser
-    }    
-
-    private fun getAllPendingBuyOrdersOfUser(userName: String) :  Collection<OrderHistory> {
-
-        val pendingBuyOrdersOfUser: MutableList<OrderHistory> = mutableListOf()
         for (order in BuyOrders) {
             if (userName == order.createdBy) {
-
-                val partialOrderHistory = OrderHistory(
-                        order!!.type,
-                        order.qty,
-                        order.price,
-                        order.createdBy,
-                        order.esopType
-                    )
-                    partialOrderHistory.id = order.id.first
-                    partialOrderHistory.status = order.status
-                    partialOrderHistory.filledQty = order.filledQty
-                    partialOrderHistory.filled = order.filled
-                    
-                    pendingBuyOrdersOfUser.add(partialOrderHistory)
-                }
+                pendingOrdersOfUser.add(order)
             }
-            return pendingBuyOrdersOfUser
         }
+        return pendingOrdersOfUser
+    }
 
 
-    
-    
-    
-    
-    
-    
-    
-    
+
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName: String): Any {
         val response = mutableMapOf<String, Any>()
@@ -181,7 +134,7 @@ class OrderController {
 
 
         OrderValidation().isValidQuantity(errorList, quantity)
-        OrderValidation().isValidAmount(errorList,price)
+        OrderValidation().isValidAmount(errorList, price)
         OrderValidation().isValidEsopType(errorList, esopType)
 
 
@@ -200,10 +153,10 @@ class OrderController {
         if (Users.containsKey(userName)) {
             val user = Users[userName]!!
 
-            if(type == "BUY"){
-                if(quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
-                else if(!OrderValidation().isInventoryWithinLimit(errorList,user,quantity))
-                else{
+            if (type == "BUY") {
+                if (quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
+                else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+                else {
                     user.walletFree -= quantity * price
                     user.walletLocked += quantity * price
 
@@ -225,7 +178,7 @@ class OrderController {
                     else {
                         user.perfLocked += quantity
                         user.perfFree -= quantity
-                        user.pendingCreditAmount += quantity*price
+                        user.pendingCreditAmount += quantity * price
 
                         newOrder = Order("SELL", quantity, price, userName, esopPerformance)
                         user.orders.add(newOrder.id)
@@ -238,15 +191,14 @@ class OrderController {
                     else {
                         user.inventoryLocked += quantity
                         user.inventoryFree -= quantity
-                        user.pendingCreditAmount += (quantity*price*0.98).toInt()
+                        user.pendingCreditAmount += (quantity * price * 0.98).toInt()
 
                         newOrder = Order("SELL", quantity, price, userName, esopNormal)
                         user.orders.add(newOrder.id)
                     }
                 }
             }
-        }
-        else {
+        } else {
             errorList.add("User doesn't exist")
         }
 

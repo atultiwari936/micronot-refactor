@@ -170,10 +170,4 @@ val SellOrders = PriorityQueue { order1 : Order, order2 : Order ->
 
 val CompletedOrders = HashMap<Pair<Int,Int>, Order>()
 
-data class OrderHistory constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esopType: Int) {
-    var status = "unfilled"
-    var filled = ArrayList<PriceQtyPair>()
-    var id: Int = 0
-    var filledQty = 0
-}
 
