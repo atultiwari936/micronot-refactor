@@ -9,7 +9,7 @@ const val maxLimitForInventory = 100000000
 
 class UserValidation {
     private val emailRegex =
-        "([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
+        "([a-zA-Z0-9]+([+._-]?[a-zA-z0-9])*)[@]([a-zA-Z]+([-]?[a-zA-Z0-9])+[.])+([a-zA-Z]+([-]?[a-zA-z0-9])+)"
     private val userNameRegex = "([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
     private val nameRegex = "^[a-zA-z ]*\$"
     private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
