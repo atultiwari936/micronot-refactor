@@ -6,22 +6,18 @@ import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Controller(value = "/user")
 class OrderController {
-    private var format = DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")
 
     @Get(value = "/{userName}/order")
     fun orderHistory(@QueryValue userName: String): Any? {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
-        val userOrders: HashMap<Int, OrderHistory> = hashMapOf()
+        val allOrdersOfUser: MutableList<Order> = mutableListOf()
+
 
         UserValidation().isUserExists(errorList, userName)
 
@@ -30,115 +26,19 @@ class OrderController {
             return HttpResponse.badRequest(response)
         }
 
+
         val userOrderIds = Users[userName]!!.orders
-        for (orderId in userOrderIds) {
 
-            if (CompletedOrders.containsKey(orderId)) {
+        allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
+        allOrdersOfUser.addAll(getAllPendingOrdersOfUser(userName))
 
-                if (!userOrders.contains(orderId.first)) {
-                    val currOrder = CompletedOrders[orderId]
-                    val partialOrderHistory = OrderHistory(
-                        currOrder!!.type,
-                        currOrder.qty,
-                        currOrder.price,
-                        currOrder.createdBy,
-                        currOrder.esopType
-                    )
-                    partialOrderHistory.id = currOrder.id.first
-                    partialOrderHistory.status = "filled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(currOrder.timestamp), ZoneOffset.UTC)
-                            .format(format).toString()
-                    partialOrderHistory.filledQty = currOrder.filledQty
-                    partialOrderHistory.filled = currOrder.filled
+        updateTransactionsOfOrder(allOrdersOfUser)
+        return HttpResponse.ok(allOrdersOfUser)
 
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-                    val exisitingOrder = CompletedOrders[orderId]
+    }
 
-                    currOrder!!.filledQty += exisitingOrder!!.filledQty
-                    currOrder!!.filled.addAll(exisitingOrder.filled)
-                }
-            }
-        }
-
-        for (order in BuyOrders) {
-            if (userName == order.createdBy) {
-
-                val orderId = order.id
-
-
-
-                if (!userOrders.contains(orderId.first)) {
-                    val partialOrderHistory = OrderHistory(
-                        order!!.type,
-                        order.qty,
-                        order.price,
-                        order.createdBy,
-                        order.esopType
-                    )
-                    partialOrderHistory.id = order.id.first
-                    partialOrderHistory.status = "unfilled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
-                            .toString()
-                    partialOrderHistory.filledQty = order.filledQty
-                    partialOrderHistory.filled = order.filled
-
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-
-                    currOrder!!.filledQty += order!!.filledQty
-                    currOrder!!.filled.addAll(order.filled)
-                }
-            }
-        }
-
-        for (order in SellOrders) {
-            if (userName == order.createdBy) {
-                val orderId = order.id
-
-                if (!userOrders.contains(orderId.first)) {
-
-                    val partialOrderHistory = OrderHistory(
-                        order!!.type,
-                        order.qty,
-                        order.price,
-                        order.createdBy,
-                        order.esopType
-                    )
-                    partialOrderHistory.id = order.id.first
-                    partialOrderHistory.status = "unfilled"
-                    partialOrderHistory.timestamp =
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(order.timestamp), ZoneOffset.UTC).format(format)
-                            .toString()
-                    partialOrderHistory.filledQty = order.filledQty
-                    partialOrderHistory.filled = order.filled
-
-                    userOrders[partialOrderHistory.id] = partialOrderHistory
-                } else {
-                    val currOrder = userOrders[orderId.first]
-
-                    currOrder!!.filledQty += order!!.filledQty
-                    currOrder!!.filled.addAll(order.filled)
-                }
-
-            }
-        }
-
-        val listOfOrders: MutableCollection<OrderHistory> = userOrders.values
-
-
-        for (individualOrder in listOfOrders) {
-            if (individualOrder.qty == individualOrder.filledQty)
-                individualOrder.status = "filled"
-            else if (individualOrder.filledQty == 0)
-                individualOrder.status = "unfilled"
-            else
-                individualOrder.status = "partially filled"
-
+    private fun updateTransactionsOfOrder(allOrdersOfUser: MutableList<Order>) {
+        for (individualOrder in allOrdersOfUser) {
 
             val transOfIndividualOrder = individualOrder.filled
 
@@ -153,15 +53,42 @@ class OrderController {
                     transIndexAtPrice[transPriceAndQty.price] = transAtSamePrice.size - 1
                 }
             }
-
             individualOrder.filled = transAtSamePrice
         }
-
-
-
-        return HttpResponse.ok(listOfOrders)
-
     }
+
+
+    private fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): MutableList<Order> {
+
+        val completedOrdersOfUser: MutableList<Order> = mutableListOf()
+        for (orderId in userOrderIds) {
+            if (CompletedOrders.containsKey(orderId)) {
+                val currOrder = CompletedOrders[orderId]
+                if (currOrder != null) {
+                    completedOrdersOfUser.add(currOrder)
+                }
+            }
+        }
+        return completedOrdersOfUser
+    }
+
+
+    private fun getAllPendingOrdersOfUser(userName: String): MutableList<Order> {
+
+        val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
+        for (order in SellOrders) {
+            if (userName == order.createdBy) {
+                pendingOrdersOfUser.add(order)
+            }
+        }
+        for (order in BuyOrders) {
+            if (userName == order.createdBy) {
+                pendingOrdersOfUser.add(order)
+            }
+        }
+        return pendingOrdersOfUser
+    }
+
 
 
     @Post(value = "/{userName}/order")
@@ -207,7 +134,7 @@ class OrderController {
 
 
         OrderValidation().isValidQuantity(errorList, quantity)
-        OrderValidation().isValidAmount(errorList,price)
+        OrderValidation().isValidAmount(errorList, price)
         OrderValidation().isValidEsopType(errorList, esopType)
 
 
@@ -226,10 +153,10 @@ class OrderController {
         if (Users.containsKey(userName)) {
             val user = Users[userName]!!
 
-            if(type == "BUY"){
-                if(quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
-                else if(!OrderValidation().isInventoryWithinLimit(errorList,user,quantity))
-                else{
+            if (type == "BUY") {
+                if (quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
+                else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+                else {
                     user.walletFree -= quantity * price
                     user.walletLocked += quantity * price
 
@@ -251,7 +178,7 @@ class OrderController {
                     else {
                         user.perfLocked += quantity
                         user.perfFree -= quantity
-                        user.pendingCreditAmount += quantity*price
+                        user.pendingCreditAmount += quantity * price
 
                         newOrder = Order("SELL", quantity, price, userName, esopPerformance)
                         user.orders.add(newOrder.id)
@@ -264,15 +191,14 @@ class OrderController {
                     else {
                         user.inventoryLocked += quantity
                         user.inventoryFree -= quantity
-                        user.pendingCreditAmount += (quantity*price*0.98).toInt()
+                        user.pendingCreditAmount += (quantity * price * 0.98).toInt()
 
                         newOrder = Order("SELL", quantity, price, userName, esopNormal)
                         user.orders.add(newOrder.id)
                     }
                 }
             }
-        }
-        else {
+        } else {
             errorList.add("User doesn't exist")
         }
 
