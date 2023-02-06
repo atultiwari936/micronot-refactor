@@ -152,8 +152,8 @@ class OrderValidation {
         return true
     }
 
-    fun isWalletAmountWithinLimit(list: ArrayList<String>, user: User, amount: Double): Boolean {
-        if (user.walletFree + user.walletLocked + user.pendingCreditAmount + amount > maxLimitForWallet) {
+    fun isWalletAmountWithinLimit(list: ArrayList<String>, user: User, amount: Int): Boolean {
+        if (!user.wallet.isWalletAmountWithinLimit(amount)) {
             list.add("Cannot place the order. Wallet amount will exceed $maxLimitForWallet")
             return false
         }

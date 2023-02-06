@@ -18,15 +18,13 @@ class WalletTest {
     fun `check whether amount added to wallet`() {
 
         val user1 = User("", "", "", "tt@gmail.com", "atul_1")
-        val objectOfUserController = UserController()
-        objectOfUserController.addUser(user1)
-        val objectOfWalletController = WalletController()
 
 
-        objectOfWalletController.addAmountToWallet(user1.userName, 1000)
+        user1.wallet.addAmountToFree(1000)
 
 
-        Assertions.assertEquals(1000, user1.walletFree)
+
+        Assertions.assertEquals(1000, user1.wallet.getFreeAmount())
     }
 
 }

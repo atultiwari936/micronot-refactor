@@ -154,11 +154,13 @@ class OrderController {
             val user = Users[userName]!!
 
             if (type == "BUY") {
-                if (quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
+                if (quantity * price > user.wallet.getFreeAmount()) errorList.add("Insufficient funds in wallet")
                 else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
                 else {
-                    user.walletFree -= quantity * price
-                    user.walletLocked += quantity * price
+
+                    user.wallet.removeAmountFromFree(quantity * price)
+
+                    user.wallet.addAmountToLocked( quantity * price)
 
                     user.pendingCreditEsop += quantity
                     newOrder = Order("BUY", quantity, price, userName, esopNormal)
@@ -172,7 +174,7 @@ class OrderController {
                     } else if (!OrderValidation().isWalletAmountWithinLimit(
                             errorList,
                             user,
-                            price * quantity.toDouble()
+                            price * quantity
                         )
                     )
                     else {
@@ -187,7 +189,7 @@ class OrderController {
                 } else if (esopType == "NORMAL") {
                     if (quantity > user.inventoryFree) {
                         errorList.add("Insufficient Normal ESOPs in inventory")
-                    } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity * 0.98))
+                    } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
                     else {
                         user.inventoryLocked += quantity
                         user.inventoryFree -= quantity

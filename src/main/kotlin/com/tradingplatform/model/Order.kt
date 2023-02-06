@@ -44,8 +44,8 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                 filledQty += potentialSellOrderQty
 
 
-                Users[createdBy]!!.walletLocked -= potentialSellOrderQty * price
-                Users[createdBy]!!.walletFree += potentialSellOrderQty * (price - potentialSellOrder.price)
+                Users[createdBy]!!.wallet.removeAmountFromLocked(potentialSellOrderQty * price)
+                Users[createdBy]!!.wallet.addAmountToFree(potentialSellOrderQty * (price - potentialSellOrder.price))
                 Users[createdBy]!!.inventoryFree += potentialSellOrderQty
                 Users[createdBy]!!.pendingCreditEsop -= potentialSellOrderQty
 
@@ -54,13 +54,13 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                 potentialSellOrder.filledQty += potentialSellOrderQty
 
                 if (potentialSellOrder.id.second == 1) {
-                    Users[potentialSellOrder.createdBy]!!.walletFree += potentialSellOrderQty * potentialSellOrder.price
+                    Users[potentialSellOrder.createdBy]!!.wallet.addAmountToFree( potentialSellOrderQty * potentialSellOrder.price)
                     Users[potentialSellOrder.createdBy]!!.perfLocked -= potentialSellOrderQty
                 } else {
 
                     val taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
-                    Users[potentialSellOrder.createdBy]!!.walletFree +=(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
+                    Users[potentialSellOrder.createdBy]!!.wallet.addAmountToFree(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
                     PlatformData.feesEarned += BigInteger(taxAmount.toString())
                     Users[potentialSellOrder.createdBy]!!.inventoryLocked -= potentialSellOrderQty
                 }
@@ -105,15 +105,15 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
                 if (id.second == 1){
                     Users[createdBy]!!.perfLocked -= potentialBuyOrderQty
-                    Users[createdBy]!!.walletFree += potentialBuyOrderQty * price
-                    Users[createdBy]!!.pendingCreditAmount -= potentialBuyOrderQty * price
+                    Users[createdBy]!!.wallet.addAmountToFree( potentialBuyOrderQty * price)
+                    Users[createdBy]!!.wallet.removeAmountFromCredit( potentialBuyOrderQty * price)
                 }
                 else {
 
                     val taxAmount : Int = ceil(potentialBuyOrderQty * price*0.02).toInt()
 
-                    Users[createdBy]!!.walletFree += (potentialBuyOrderQty * price - taxAmount)
-                    Users[createdBy]!!.pendingCreditAmount -= (potentialBuyOrderQty * price - taxAmount)
+                    Users[createdBy]!!.wallet.addAmountToFree (potentialBuyOrderQty * price - taxAmount)
+                    Users[createdBy]!!.wallet.removeAmountFromCredit (potentialBuyOrderQty * price - taxAmount)
                     PlatformData.feesEarned += BigInteger(taxAmount.toString())
                     Users[createdBy]!!.inventoryLocked -= potentialBuyOrderQty
 
@@ -122,9 +122,9 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
                 potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                 potentialBuyOrder.filledQty += potentialBuyOrderQty
-                Users[potentialBuyOrder.createdBy]!!.walletLocked -= potentialBuyOrderQty *potentialBuyOrder.price
+                Users[potentialBuyOrder.createdBy]!!.wallet.removeAmountFromLocked( potentialBuyOrderQty *potentialBuyOrder.price)
 
-                Users[potentialBuyOrder.createdBy]!!.walletFree += potentialBuyOrderQty * (potentialBuyOrder.price - price)
+                Users[potentialBuyOrder.createdBy]!!.wallet.addAmountToFree( potentialBuyOrderQty * (potentialBuyOrder.price - price))
                 Users[potentialBuyOrder.createdBy]!!.inventoryFree += potentialBuyOrderQty
                 if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
                 BuyOrders.add(potentialBuyOrder)

@@ -35,19 +35,15 @@ class WalletController {
             errorList.add("Amount data type is invalid")
         }
         else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue))
-            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].doubleValue)
+            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].intValue)
 
 
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        addAmountToWallet(userName,amount.intValue)
+        Users[userName]!!.wallet.addAmountToFree(amount.intValue)
+
         responseMap["message"] = "${amount.intValue} added to account"
         return HttpResponse.ok(responseMap)
-    }
-
-    fun addAmountToWallet(userName: String,amount:Int)
-    {
-        Users[userName]?.walletFree = Users[userName]?.walletFree?.plus(amount)!!
     }
 
 

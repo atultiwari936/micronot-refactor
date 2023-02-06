@@ -90,8 +90,8 @@ class UserController {
         val user = Users[userName]!!
 
         val wallet = mutableMapOf<String, Int>()
-        wallet["free"] = user.walletFree
-        wallet["locked"] = user.walletLocked
+        wallet["free"] = user.wallet.getFreeAmount()
+        wallet["locked"] = user.wallet.getLockedAmount()
 
         val inventory = mutableListOf<InventoryOutput>()
 

@@ -24,15 +24,14 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderController()
 
         //Act
         objectOfOrderController.orderHandler(user1.userName, "BUY", 1, 20, "NORMAL")
 
         //Assert
-        Assertions.assertEquals(80, user1.walletFree)
-        Assertions.assertEquals(80, user1.walletFree)
+        Assertions.assertEquals(80, user1.wallet.getFreeAmount())
     }
 
     @Test
@@ -40,7 +39,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
@@ -53,15 +52,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(0, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(60, user1.walletLocked)
+        Assertions.assertEquals(60, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -70,7 +69,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
@@ -83,15 +82,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(0, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(60, user1.walletLocked)
+        Assertions.assertEquals(60, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(40, user2.walletFree)
+        Assertions.assertEquals(40, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.perfFree)
         Assertions.assertEquals(0, user2.perfLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -104,7 +103,7 @@ class OrderMatchingTest {
 
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
-        user2.walletFree = 100
+        user2.wallet.addAmountToFree(100)
 
 
         //Act
@@ -114,15 +113,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(98, user1.walletFree)
+        Assertions.assertEquals(98, user1.wallet.getFreeAmount())
         Assertions.assertEquals(1, user1.inventoryFree)
         Assertions.assertEquals(5, user1.inventoryLocked)
-        Assertions.assertEquals(0, user1.walletLocked)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(0, user2.walletFree)
+        Assertions.assertEquals(0, user2.wallet.getFreeAmount())
         Assertions.assertEquals(5, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
     @Test
@@ -130,7 +129,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
@@ -143,15 +142,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(0, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(60, user1.walletLocked)
+        Assertions.assertEquals(60, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(40, user2.walletFree)
+        Assertions.assertEquals(40, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.perfFree)
         Assertions.assertEquals(0, user2.perfLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -162,7 +161,7 @@ class OrderMatchingTest {
         Users[user1.userName] = user1
         user1.inventoryFree = 40
         user1.perfFree = 40
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
 
         //Act
 
@@ -171,8 +170,8 @@ class OrderMatchingTest {
         //Assert
         Assertions.assertEquals(40, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(100, user1.walletFree)
-        Assertions.assertEquals(0, user1.walletLocked)
+        Assertions.assertEquals(100, user1.wallet.getFreeAmount())
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
         Assertions.assertEquals(30, user1.perfFree)
         Assertions.assertEquals(10, user1.perfLocked)
     }
@@ -183,7 +182,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
         user2.inventoryFree = 10
@@ -196,15 +195,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(60, user1.walletFree)
+        Assertions.assertEquals(60, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(0, user1.walletLocked)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
     @Test
@@ -212,7 +211,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
         user2.inventoryFree = 10
@@ -223,15 +222,15 @@ class OrderMatchingTest {
         objectOfOrderController.orderHandler(user2.userName, "SELL", 2, 20)
 
         //Assert
-        Assertions.assertEquals(60, user1.walletFree)
+        Assertions.assertEquals(60, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
-        Assertions.assertEquals(0, user1.walletLocked)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -240,7 +239,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
         user2.inventoryFree = 10
@@ -253,15 +252,15 @@ class OrderMatchingTest {
         objectOfOrderController.orderHandler(user2.userName, "SELL", 2, 20)
 
         //Assert
-        Assertions.assertEquals(40, user1.walletLocked)
-        Assertions.assertEquals(20, user1.walletFree)
+        Assertions.assertEquals(40, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(20, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
     @Test
@@ -269,7 +268,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
         user2.inventoryFree = 10
@@ -282,15 +281,15 @@ class OrderMatchingTest {
         objectOfOrderController.orderHandler(user2.userName, "SELL", 2, 20)
 
         //Assert
-        Assertions.assertEquals(40, user1.walletLocked)
-        Assertions.assertEquals(20, user1.walletFree)
+        Assertions.assertEquals(40, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(20, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -299,7 +298,7 @@ class OrderMatchingTest {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
         Users[user1.userName] = user1
-        user1.walletFree = 100
+        user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
         user2.inventoryFree = 10
@@ -313,15 +312,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(40, user1.walletLocked)
-        Assertions.assertEquals(20, user1.walletFree)
+        Assertions.assertEquals(40, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(20, user1.wallet.getFreeAmount())
         Assertions.assertEquals(2, user1.inventoryFree)
         Assertions.assertEquals(0, user1.inventoryLocked)
 
-        Assertions.assertEquals(39, user2.walletFree)
+        Assertions.assertEquals(39, user2.wallet.getFreeAmount())
         Assertions.assertEquals(8, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -333,7 +332,7 @@ class OrderMatchingTest {
         user1.inventoryFree = 10
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
-        user2.walletFree = 100
+        user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderController()
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 20)
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 30)
@@ -344,15 +343,15 @@ class OrderMatchingTest {
 
 
         //Assert
-        Assertions.assertEquals(0, user1.walletLocked)
-        Assertions.assertEquals(39, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(39, user1.wallet.getFreeAmount())
         Assertions.assertEquals(6, user1.inventoryFree)
         Assertions.assertEquals(2, user1.inventoryLocked)
 
-        Assertions.assertEquals(60, user2.walletFree)
+        Assertions.assertEquals(60, user2.wallet.getFreeAmount())
         Assertions.assertEquals(2, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 
@@ -365,7 +364,7 @@ class OrderMatchingTest {
         user1.inventoryFree = 10
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
-        user2.walletFree = 100
+        user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderController()
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 30)
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 20)
@@ -374,15 +373,15 @@ class OrderMatchingTest {
         objectOfOrderController.orderHandler(user2.userName, "BUY", 2, 20)
 
         //Assert
-        Assertions.assertEquals(0, user1.walletLocked)
-        Assertions.assertEquals(39, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(39, user1.wallet.getFreeAmount())
         Assertions.assertEquals(6, user1.inventoryFree)
         Assertions.assertEquals(2, user1.inventoryLocked)
 
-        Assertions.assertEquals(60, user2.walletFree)
+        Assertions.assertEquals(60, user2.wallet.getFreeAmount())
         Assertions.assertEquals(2, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
     @Test
@@ -393,7 +392,7 @@ class OrderMatchingTest {
         user1.inventoryFree = 10
         val user2 = User("", "", "", "", "atul_2")
         Users[user2.userName] = user2
-        user2.walletFree = 100
+        user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderController()
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 20)
         objectOfOrderController.orderHandler(user1.userName, "SELL", 2, 20)
@@ -402,15 +401,15 @@ class OrderMatchingTest {
         objectOfOrderController.orderHandler(user2.userName, "BUY", 2, 20)
 
         //Assert
-        Assertions.assertEquals(0, user1.walletLocked)
-        Assertions.assertEquals(39, user1.walletFree)
+        Assertions.assertEquals(0, user1.wallet.getLockedAmount())
+        Assertions.assertEquals(39, user1.wallet.getFreeAmount())
         Assertions.assertEquals(6, user1.inventoryFree)
         Assertions.assertEquals(2, user1.inventoryLocked)
 
-        Assertions.assertEquals(60, user2.walletFree)
+        Assertions.assertEquals(60, user2.wallet.getFreeAmount())
         Assertions.assertEquals(2, user2.inventoryFree)
         Assertions.assertEquals(0, user2.inventoryLocked)
-        Assertions.assertEquals(0, user2.walletLocked)
+        Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
 
 

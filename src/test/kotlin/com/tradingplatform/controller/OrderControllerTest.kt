@@ -110,7 +110,7 @@ class OrderControllerTest {
     fun `Check if successful order is placed if order request is valid`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
         Users[user.userName] = user
-        user.walletFree = 100
+        user.wallet.addAmountToFree(100)
 
         spec.`when`()
             .header("Content-Type", "application/json")
@@ -137,7 +137,7 @@ class OrderControllerTest {
     fun `Check if error is returned if free wallet balance is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
         Users[user.userName] = user
-        user.walletFree = 10
+        user.wallet.addAmountToFree(10)
 
         spec.`when`()
             .header("Content-Type", "application/json")
