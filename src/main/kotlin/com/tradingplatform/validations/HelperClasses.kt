@@ -161,7 +161,7 @@ class OrderValidation {
     }
 
     fun isInventoryWithinLimit(list: ArrayList<String>, user: User, inventory: Int): Boolean {
-        if (user.inventoryFree + user.inventoryLocked + user.perfFree + user.perfLocked + user.pendingCreditEsop + inventory > maxLimitForInventory) {
+        if (user.inventory.esopNormal.free + user.inventory.esopNormal.locked + user.inventory.esopPerformance.free + user.inventory.esopPerformance.locked + user.inventory.credit + inventory > maxLimitForInventory) {
             list.add("Cannot place the order. Total Inventory will exceed $maxLimitForInventory")
             return false
         }

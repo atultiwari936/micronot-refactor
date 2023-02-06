@@ -20,7 +20,7 @@ class InventoryTest {
         objectOfInventoryController.addESOPStoUserInventory(user1.userName, "PERFORMANCE", 100)
 
 
-        Assertions.assertEquals(100, user1.perfFree)
+        Assertions.assertEquals(100, user1.inventory.esopPerformance.free)
     }
 
 
@@ -36,7 +36,7 @@ class InventoryTest {
         objectOfInventoryController.addESOPStoUserInventory(user1.userName, "NORMAL", 100)
 
 
-        Assertions.assertEquals(100, user1.inventoryFree)
+        Assertions.assertEquals(100, user1.inventory.esopNormal.free)
     }
 
 

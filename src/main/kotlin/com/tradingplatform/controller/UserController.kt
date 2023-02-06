@@ -95,8 +95,8 @@ class UserController {
 
         val inventory = mutableListOf<InventoryOutput>()
 
-        val normalInventory = InventoryOutput(user.inventoryFree, user.inventoryLocked, "NON_PERFORMANCE")
-        val performanceInventory = InventoryOutput(user.perfFree, user.perfLocked, "PERFORMANCE")
+        val normalInventory = InventoryOutput(user.inventory.esopNormal.free, user.inventory.esopNormal.locked, "NON_PERFORMANCE")
+        val performanceInventory = InventoryOutput(user.inventory.esopPerformance.free, user.inventory.esopPerformance.locked, "PERFORMANCE")
 
         inventory.add(normalInventory)
         inventory.add(performanceInventory)

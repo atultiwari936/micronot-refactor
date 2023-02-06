@@ -162,14 +162,14 @@ class OrderController {
 
                     user.wallet.addAmountToLocked( quantity * price)
 
-                    user.pendingCreditEsop += quantity
+                    user.inventory.credit += quantity
                     newOrder = Order("BUY", quantity, price, userName, esopNormal)
                     user.orders.add(newOrder.id)
 
                 }
             } else if (type == "SELL") {
                 if (esopType == "PERFORMANCE") {
-                    if (quantity > user.perfFree) {
+                    if (quantity > user.inventory.esopPerformance.free) {
                         errorList.add("Insufficient Performance ESOPs in inventory")
                     } else if (!OrderValidation().isWalletAmountWithinLimit(
                             errorList,
@@ -178,22 +178,22 @@ class OrderController {
                         )
                     )
                     else {
-                        user.perfLocked += quantity
-                        user.perfFree -= quantity
-                        user.pendingCreditAmount += quantity * price
+                        user.inventory.esopPerformance.locked += quantity
+                        user.inventory.esopPerformance.free -= quantity
+                        user.wallet.credit += quantity * price
 
                         newOrder = Order("SELL", quantity, price, userName, esopPerformance)
                         user.orders.add(newOrder.id)
 
                     }
                 } else if (esopType == "NORMAL") {
-                    if (quantity > user.inventoryFree) {
+                    if (quantity > user.inventory.esopNormal.free) {
                         errorList.add("Insufficient Normal ESOPs in inventory")
                     } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
                     else {
-                        user.inventoryLocked += quantity
-                        user.inventoryFree -= quantity
-                        user.pendingCreditAmount += (quantity * price * 0.98).toInt()
+                        user.inventory.esopNormal.locked += quantity
+                        user.inventory.esopNormal.free -= quantity
+                        user.wallet.credit += (quantity * price * 0.98).toInt()
 
                         newOrder = Order("SELL", quantity, price, userName, esopNormal)
                         user.orders.add(newOrder.id)
