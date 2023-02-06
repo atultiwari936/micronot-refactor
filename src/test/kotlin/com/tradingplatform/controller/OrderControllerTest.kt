@@ -1,11 +1,11 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.maxLimitForInventory
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -18,6 +18,7 @@ class OrderControllerTest {
         BuyOrders.clear()
         SellOrders.clear()
         Users.clear()
+        UserRepo.users.clear()
     }
 
     @Test
@@ -109,7 +110,7 @@ class OrderControllerTest {
     @Test
     fun `Check if successful order is placed if order request is valid`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
         user.wallet.addAmountToFree(100)
 
         spec.`when`()
@@ -136,7 +137,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if free wallet balance is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
         user.wallet.addAmountToFree(10)
 
         spec.`when`()
@@ -160,7 +161,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
 
 
         spec.`when`()
@@ -184,7 +185,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if performance inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
 
 
         spec.`when`()

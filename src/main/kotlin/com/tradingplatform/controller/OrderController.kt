@@ -1,5 +1,6 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
@@ -77,12 +78,12 @@ class OrderController {
 
         val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
         for (order in SellOrders) {
-            if (userName == order.createdBy) {
+            if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
         }
         for (order in BuyOrders) {
-            if (userName == order.createdBy) {
+            if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
         }
@@ -150,58 +151,61 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
         var newOrder: Order? = null
-        if (Users.containsKey(userName)) {
-            val user = Users[userName]!!
+        val user = UserRepo().getUser(userName)
 
-            if (type == "BUY") {
-                if (quantity * price > user.wallet.getFreeAmount()) errorList.add("Insufficient funds in wallet")
-                else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+        if (user == null) {
+            errorList.add("User doesn't exist")
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
+        }
+
+
+        if (type == "BUY") {
+            if (quantity * price > user.wallet.getFreeAmount()) errorList.add("Insufficient funds in wallet")
+            else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+            else {
+
+                user.wallet.removeAmountFromFree(quantity * price)
+
+                user.wallet.addAmountToLocked( quantity * price)
+
+                user.inventory.credit += quantity
+                newOrder = Order("BUY", quantity, price, user, esopNormal)
+                user.orders.add(newOrder.id)
+
+            }
+        } else if (type == "SELL") {
+            if (esopType == "PERFORMANCE") {
+                if (quantity > user.inventory.esopPerformance.free) {
+                    errorList.add("Insufficient Performance ESOPs in inventory")
+                } else if (!OrderValidation().isWalletAmountWithinLimit(
+                        errorList,
+                        user,
+                        price * quantity
+                    )
+                )
                 else {
+                    user.inventory.esopPerformance.locked += quantity
+                    user.inventory.esopPerformance.free -= quantity
+                    user.wallet.credit += quantity * price
 
-                    user.wallet.removeAmountFromFree(quantity * price)
-
-                    user.wallet.addAmountToLocked( quantity * price)
-
-                    user.inventory.credit += quantity
-                    newOrder = Order("BUY", quantity, price, userName, esopNormal)
+                    newOrder = Order("SELL", quantity, price, user, esopPerformance)
                     user.orders.add(newOrder.id)
 
                 }
-            } else if (type == "SELL") {
-                if (esopType == "PERFORMANCE") {
-                    if (quantity > user.inventory.esopPerformance.free) {
-                        errorList.add("Insufficient Performance ESOPs in inventory")
-                    } else if (!OrderValidation().isWalletAmountWithinLimit(
-                            errorList,
-                            user,
-                            price * quantity
-                        )
-                    )
-                    else {
-                        user.inventory.esopPerformance.locked += quantity
-                        user.inventory.esopPerformance.free -= quantity
-                        user.wallet.credit += quantity * price
+            } else if (esopType == "NORMAL") {
+                if (quantity > user.inventory.esopNormal.free) {
+                    errorList.add("Insufficient Normal ESOPs in inventory")
+                } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
+                else {
+                    user.inventory.esopNormal.locked += quantity
+                    user.inventory.esopNormal.free -= quantity
+                    user.wallet.credit += (quantity * price * 0.98).toInt()
 
-                        newOrder = Order("SELL", quantity, price, userName, esopPerformance)
-                        user.orders.add(newOrder.id)
-
-                    }
-                } else if (esopType == "NORMAL") {
-                    if (quantity > user.inventory.esopNormal.free) {
-                        errorList.add("Insufficient Normal ESOPs in inventory")
-                    } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
-                    else {
-                        user.inventory.esopNormal.locked += quantity
-                        user.inventory.esopNormal.free -= quantity
-                        user.wallet.credit += (quantity * price * 0.98).toInt()
-
-                        newOrder = Order("SELL", quantity, price, userName, esopNormal)
-                        user.orders.add(newOrder.id)
-                    }
+                    newOrder = Order("SELL", quantity, price, user, esopNormal)
+                    user.orders.add(newOrder.id)
                 }
             }
-        } else {
-            errorList.add("User doesn't exist")
         }
 
         response["error"] = errorList

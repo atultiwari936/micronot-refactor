@@ -1,5 +1,6 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
@@ -53,7 +54,7 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        addUser(userData)
+        UserRepo().addUser(userData)
 
         val okResponse = HashMap<String, String>()
         okResponse["message"] = "User registered successfully"
