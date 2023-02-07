@@ -2,6 +2,7 @@ package com.tradingplatform.model
 
 import com.tradingplatform.controller.InventoryController
 import com.tradingplatform.controller.UserController
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.UserValidation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,7 +14,7 @@ import org.junit.jupiter.params.provider.CsvSource
 class UserTest {
     @BeforeEach
     fun `Tear down existing data`() {
-        Users.clear()
+        UserRepo.users.clear()
     }
 
     @ParameterizedTest
@@ -139,8 +140,7 @@ class UserTest {
     fun `Test if user exist while adding inventory`() {
         //Arrange
         val user1 = User("atul", "tiwari", "+918888888888", "tt@gmail.com", "atul_1")
-        val objectOfUserController = UserController()
-        objectOfUserController.addUser(user1)
+        UserRepo.addUser(user1)
         val objectOfInventoryController = InventoryController()
         val userName = "atul_1"
 
@@ -156,7 +156,7 @@ class UserTest {
             firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com", phoneNumber = "+919877678987",
             userName = "atul"
         )
-        UserController().addUser(user)
+        UserRepo.addUser(user)
         val errorList = arrayListOf<String>()
 
         val actualResponse = UserValidation().isUserNameValid(errorList, "atul")
@@ -171,7 +171,7 @@ class UserTest {
             firstName = "Atul", lastName = "Tiwari", email = "atul@gmail.com", phoneNumber = "+919877678987",
             userName = "atul"
         )
-        UserController().addUser(user)
+        UserRepo.addUser(user)
         val errorList = arrayListOf<String>()
 
         val actualResponse = UserValidation().isPhoneValid(errorList, "+919877678987")

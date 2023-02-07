@@ -1,7 +1,7 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.User
-import com.tradingplatform.model.Users
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
@@ -14,7 +14,7 @@ class UserControllerTest {
 
     @BeforeEach
     fun setUp() {
-        Users.clear()
+        UserRepo.users.clear()
     }
 
     @Test
@@ -52,7 +52,7 @@ class UserControllerTest {
             phoneNumber = "+912345678977",
             userName = "atul_99"
         )
-        UserController().addUser(user)
+        UserRepo.addUser(user)
 
         //Assert
         spec.`when`().get("/user/atul_99/accountInformation").then().statusCode(200).and()

@@ -1,6 +1,7 @@
 package com.tradingplatform
 
 import com.tradingplatform.controller.UserController
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +15,7 @@ class OrderTest {
         CompletedOrders.clear()
         BuyOrders.clear()
         SellOrders.clear()
-        Users.clear()
+        UserRepo.users.clear()
     }
 
     @Test

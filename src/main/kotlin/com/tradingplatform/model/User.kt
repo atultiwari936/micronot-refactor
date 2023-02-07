@@ -6,4 +6,3 @@ data class User constructor(val firstName : String, val lastName : String, val p
     val orders = arrayListOf<Pair<Int,Int>>()
 }
 
-val Users = HashMap<String,User>()

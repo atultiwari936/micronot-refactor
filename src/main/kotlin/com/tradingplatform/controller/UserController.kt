@@ -72,23 +72,20 @@ class UserController {
         return errorList
     }
 
-    fun addUser(userData: User) {
-        Users[userData.userName] = userData
-    }
 
     @Get(value = "/{userName}/accountInformation")
     fun getAccountInformation(@PathVariable(name = "userName") userName: String): MutableHttpResponse<out Any?>? {
 
         val response = mutableMapOf<String, Any>()
         val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList, userName)
-        if (errorList.isNotEmpty()) {
+        val user = UserRepo.getUser(userName)
+//        UserValidation().isUserExists(errorList, userName)
+        if (user !is User) {
             response["error"] = errorList
-
+            errorList.add("User does not exists")
             return HttpResponse.badRequest(response)
         }
 
-        val user = Users[userName]!!
 
         val wallet = mutableMapOf<String, Int>()
         wallet["free"] = user.wallet.getFreeAmount()

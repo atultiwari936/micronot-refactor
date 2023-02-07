@@ -14,7 +14,7 @@ class OrderMatchingTest {
         CompletedOrders.clear()
         BuyOrders.clear()
         SellOrders.clear()
-        Users.clear()
+        UserRepo.users.clear()
         UserRepo.users.clear()
     }
 

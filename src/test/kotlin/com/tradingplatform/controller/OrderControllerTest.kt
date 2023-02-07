@@ -17,7 +17,6 @@ class OrderControllerTest {
         CompletedOrders.clear()
         BuyOrders.clear()
         SellOrders.clear()
-        Users.clear()
         UserRepo.users.clear()
     }
 

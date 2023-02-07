@@ -1,7 +1,7 @@
 package com.tradingplatform.validations
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.User
-import com.tradingplatform.model.Users
 import io.micronaut.json.tree.JsonObject
 
 const val maxLimitForWallet = 10000000
@@ -14,7 +14,7 @@ class UserValidation {
     private val nameRegex = "^[a-zA-z ]*\$"
     private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
     fun isUserExists(list: ArrayList<String>, userName: String) {
-        if (!Users.containsKey(userName))
+        if (!UserRepo.users.containsKey(userName))
             list.add("User does not exists")
     }
 
@@ -52,8 +52,8 @@ class UserValidation {
 
     private fun isEmailUnique(email: String): List<String> {
         val errorList = arrayListOf<String>()
-        for (user in Users.keys) {
-            if (Users[user]!!.email == email) {
+        for (user in UserRepo.users) {
+            if (user.value.email == email) {
                 errorList.add("email is already registered")
             }
         }
@@ -72,8 +72,8 @@ class UserValidation {
     }
 
     private fun isPhoneUnique(phoneNumber: String): Boolean {
-        for (user in Users.keys) {
-            if (Users[user]!!.phoneNumber == phoneNumber) {
+        for (user in UserRepo.users) {
+            if (user.value.phoneNumber == phoneNumber) {
                 return false
             }
         }
@@ -93,8 +93,8 @@ class UserValidation {
     }
 
     private fun isUnameUnique(userName: String): Boolean {
-        for (user in Users.keys) {
-            if (Users[user]!!.userName == userName) {
+        for (user in UserRepo.users) {
+            if (user.value.userName == userName) {
                 return false
             }
         }

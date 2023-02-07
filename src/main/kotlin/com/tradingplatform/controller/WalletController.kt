@@ -1,8 +1,8 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
+import com.tradingplatform.model.User
 import com.tradingplatform.validations.OrderValidation
-import com.tradingplatform.validations.UserValidation
-import com.tradingplatform.model.Users
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Body
@@ -20,27 +20,32 @@ class WalletController {
         val responseMap= HashMap<String,String>()
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
-        response["error"] = errorList
-        UserValidation().isUserExists(errorList,userName)
-
-        val amount =body["amount"]
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-        if(amount==null)
+        val user = UserRepo.getUser(userName)
+        if(user !is User)
         {
-            errorList.add("Enter the amount field")
-
+            response["error"] = errorList
+            errorList.add("User does not exists")
             return HttpResponse.badRequest(response)
         }
+
+        val amount =body["amount"]
+        if(amount==null)
+        {
+            response["error"] = errorList
+            errorList.add("Enter the amount field")
+            return HttpResponse.badRequest(response)
+        }
+
         if(!amount.isNumber || (ceil(amount.doubleValue).roundToInt()!=amount.intValue)) {
             errorList.add("Amount data type is invalid")
         }
         else if(OrderValidation().isValidAmount(errorList, body["amount"].intValue))
-            OrderValidation().isWalletAmountWithinLimit(errorList, Users[userName]!!, body["amount"].intValue)
+            OrderValidation().isWalletAmountWithinLimit(errorList, user, body["amount"].intValue)
 
-
+        response["error"]=errorList
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        Users[userName]!!.wallet.addAmountToFree(amount.intValue)
+        user.wallet.addAmountToFree(amount.intValue)
 
         responseMap["message"] = "${amount.intValue} added to account"
         return HttpResponse.ok(responseMap)

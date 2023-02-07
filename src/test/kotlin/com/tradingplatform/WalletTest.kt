@@ -1,7 +1,7 @@
 package com.tradingplatform
 
-import com.tradingplatform.controller.UserController
-import com.tradingplatform.controller.WalletController
+
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -11,7 +11,7 @@ class WalletTest {
 
     @BeforeEach
     fun `Remove all the Users and Orders`() {
-        Users.clear()
+        UserRepo.users.clear()
     }
 
     @Test
