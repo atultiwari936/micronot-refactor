@@ -18,21 +18,10 @@ class UserController {
 
         var errorList = arrayListOf<String>()
         val errorResponse = mutableMapOf<String, MutableList<String>>()
-        val fieldLists = arrayListOf("userName", "firstName", "lastName", "phoneNumber", "email")
 
-        //Check for empty fields
-        for (field in fieldLists) {
-            if (UserValidation().isFieldExists(field, body)) {
-                errorList.add("Enter the $field field")
-                errorResponse["error"] = errorList
-            } else if (body[field] == null || !body[field]!!.isString) {
-                errorList.add("$field data type not in valid format")
-                errorResponse["error"] = errorList
-            }
-        }
-
-        if (errorList.isNotEmpty()) {
-            return HttpResponse.badRequest(errorResponse)
+        val response=UserReqValidation.ifValidFields(body)
+        if (response != null) {
+            return HttpResponse.badRequest(response)
         }
 
         val userName = body["userName"]!!.stringValue
@@ -78,16 +67,12 @@ class UserController {
     fun getAccountInformation(@PathVariable(name = "userName") userName: String): MutableHttpResponse<out Any?>? {
 
         val response = mutableMapOf<String, Any>()
-        val errorList = arrayListOf<String>()
-
-
         val errorResponse = UserReqValidation.isUserExists(userName)
 
         if (errorResponse != null)
             return HttpResponse.badRequest(errorResponse)
 
         val user = UserRepo.getUser(userName)!!
-
 
         val wallet = mutableMapOf<String, Int>()
         wallet["free"] = user.wallet.getFreeAmount()
