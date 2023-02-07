@@ -3,6 +3,7 @@ package com.tradingplatform.controller
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.model.*
+import com.tradingplatform.validations.UserReqValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
@@ -146,13 +147,14 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
         var newOrder: Order? = null
-        val user = UserRepo.getUser(userName)
 
-        if (user == null) {
-            errorList.add("User doesn't exist")
-            response["error"] = errorList
-            return HttpResponse.badRequest(response)
-        }
+
+        val errorResponse = UserReqValidation.isUserExists(userName)
+
+        if (errorResponse != null)
+            return HttpResponse.badRequest(errorResponse)
+
+        val user = UserRepo.getUser(userName)!!
 
 
         val totalAmount = quantity * price

@@ -15,10 +15,7 @@ class OrderMatchingTest {
         BuyOrders.clear()
         SellOrders.clear()
         UserRepo.users.clear()
-        UserRepo.users.clear()
     }
-
-
 
 
     @Test
@@ -355,7 +352,6 @@ class OrderMatchingTest {
         Assertions.assertEquals(0, user2.inventory.esopNormal.locked)
         Assertions.assertEquals(0, user2.wallet.getLockedAmount())
     }
-
 
 
     @Test

@@ -4,6 +4,7 @@ import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
 import com.tradingplatform.validations.OrderValidation
+import com.tradingplatform.validations.UserReqValidation
 import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
@@ -27,12 +28,11 @@ class InventoryController {
         val msg = mutableListOf<String>()
         val errorList = ArrayList<String>()
 
-        val user = UserRepo.getUser(userName)
-        if (user !is User) {
-            response["error"] = errorList
-            errorList.add("User does not exists")
-            return HttpResponse.badRequest(response)
-        }
+        val errorResponse = UserReqValidation.isUserExists(userName)
+        if (errorResponse != null)
+            return HttpResponse.badRequest(errorResponse)
+
+        val user = UserRepo.getUser(userName)!!
 
         val quantity = body["quantity"]
         if (quantity == null) {
@@ -78,12 +78,4 @@ class InventoryController {
         return ("$esopQuantity ESOPs added to account")
 
     }
-
-    fun checkIfUserExist(userName: String): ArrayList<String> {
-        val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList, userName)
-        return errorList
-    }
-
-
 }

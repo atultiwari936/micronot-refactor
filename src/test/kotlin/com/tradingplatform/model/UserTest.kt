@@ -1,7 +1,6 @@
 package com.tradingplatform.model
 
-import com.tradingplatform.controller.InventoryController
-import com.tradingplatform.controller.UserController
+
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.UserValidation
 import org.junit.jupiter.api.Assertions
@@ -122,33 +121,6 @@ class UserTest {
         Assertions.assertEquals(false, actualResponse)
     }
 
-    @Test
-    fun `Test if user not exist while adding inventory`() {
-
-        val objectOfInventoryController = InventoryController()
-        val userName = "vishal898"
-
-        val errorList = objectOfInventoryController.checkIfUserExist(userName)
-
-        assertTrue {
-            errorList.contains("User does not exists")
-        }
-    }
-
-
-    @Test
-    fun `Test if user exist while adding inventory`() {
-        //Arrange
-        val user1 = User("atul", "tiwari", "+918888888888", "tt@gmail.com", "atul_1")
-        UserRepo.addUser(user1)
-        val objectOfInventoryController = InventoryController()
-        val userName = "atul_1"
-
-        val errorList = objectOfInventoryController.checkIfUserExist(userName)
-
-
-        Assertions.assertEquals(0, errorList.size)
-    }
 
     @Test
     fun `Check if username is unique`() {

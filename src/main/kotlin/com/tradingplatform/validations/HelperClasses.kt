@@ -13,10 +13,7 @@ class UserValidation {
     private val userNameRegex = "([a-zA-Z]+[(a-zA-z0-9)|_]*){3,}"
     private val nameRegex = "^[a-zA-z ]*\$"
     private val phoneNumberRegex = "^[+]+[0-9]{1,3}[0-9]{10}\$"
-    fun isUserExists(list: ArrayList<String>, userName: String) {
-        if (!UserRepo.users.containsKey(userName))
-            list.add("User does not exists")
-    }
+
 
     private fun isEmailAsPerRegex(email: String): List<String> {
         if (!(email.isNotEmpty() && emailRegex.toRegex().matches(email))) {
