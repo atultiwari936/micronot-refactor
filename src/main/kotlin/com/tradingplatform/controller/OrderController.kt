@@ -159,8 +159,9 @@ class OrderController {
         if (type == "BUY") {
             if (totalAmount > user.wallet.getFreeAmount()) {
                 errorList.add("Insufficient funds in wallet")
-            } else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
-            else {
+            } else if (!user.inventory.isInventoryWithinLimit(quantity)) {
+                errorList.add("Cannot place the order. Wallet amount will exceed ${PlatformData.MAX_INVENTORY_LIMIT}")
+            } else {
 
                 user.wallet.transferAmountFromFreeToLocked(totalAmount)
                 user.inventory.addESOPToCredit(quantity)
@@ -173,9 +174,7 @@ class OrderController {
                 if (quantity > user.inventory.getPerformanceFreeQuantity()) {
                     errorList.add("Insufficient Performance ESOPs in inventory")
                 } else if (!OrderValidation().isWalletAmountWithinLimit(
-                        errorList,
-                        user,
-                        price * quantity
+                        errorList, user, price * quantity
                     )
                 )
                 else {
@@ -191,9 +190,7 @@ class OrderController {
                 if (quantity > user.inventory.getNormalFreeQuantity()) {
                     errorList.add("Insufficient Normal ESOPs in inventory")
                 } else if (!OrderValidation().isWalletAmountWithinLimit(
-                        errorList,
-                        user,
-                        (price * quantity * 0.98).toInt()
+                        errorList, user, (price * quantity * 0.98).toInt()
                     )
                 )
                 else {

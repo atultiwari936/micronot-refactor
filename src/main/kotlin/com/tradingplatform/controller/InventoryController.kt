@@ -1,6 +1,7 @@
 package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
+import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
 import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.validations.UserValidation
@@ -17,59 +18,58 @@ import kotlin.math.roundToInt
 
 @Controller(value = "user/{userName}")
 class InventoryController {
-    @Post(value="/inventory")
-    fun addInventory(@Body body: JsonObject, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
+    @Post(value = "/inventory")
+    fun addInventory(
+        @Body body: JsonObject,
+        @PathVariable(name = "userName") userName: String
+    ): MutableHttpResponse<out Any>? {
         val response = mutableMapOf<String, MutableList<String>>()
         val msg = mutableListOf<String>()
-        val errorList= ArrayList<String>()
+        val errorList = ArrayList<String>()
 
-        val user=UserRepo.getUser(userName)
-        if(user !is User)
-        {
+        val user = UserRepo.getUser(userName)
+        if (user !is User) {
             response["error"] = errorList
             errorList.add("User does not exists")
             return HttpResponse.badRequest(response)
         }
 
         val quantity = body["quantity"]
-        if(quantity ==null)
-        {
+        if (quantity == null) {
             errorList.add("Quantity is missing")
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
-        if(!quantity.isNumber || ceil(quantity.doubleValue).roundToInt()!= quantity.intValue) {
+        if (!quantity.isNumber || ceil(quantity.doubleValue).roundToInt() != quantity.intValue) {
 
             errorList.add("Quantity data type is invalid")
-        }
-        else if(OrderValidation().isValidQuantity(errorList, quantity.intValue)){
-            OrderValidation().isInventoryWithinLimit(errorList,user , quantity.intValue)
+        } else if (OrderValidation().isValidQuantity(errorList, quantity.intValue)) {
+            if (!user.inventory.isInventoryWithinLimit(quantity.intValue)) {
+                errorList.add("Cannot place the order. Wallet amount will exceed ${PlatformData.MAX_INVENTORY_LIMIT}")
+            }
         }
 
         val type = body["type"]
 
-        if(type !=null &&( !type.isString|| type.stringValue!="PERFORMANCE"))
-        {
+        if (type != null && (!type.isString || type.stringValue != "PERFORMANCE")) {
             errorList.add("ESOP type is invalid ( Allowed value : PERFORMANCE and NON-PERFORMANCE)")
         }
 
         response["error"] = errorList
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        if (errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
-        if(type !=null)
-            msg.add(addESOPStoUserInventory(user,"PERFORMANCE", quantity.intValue))
+        if (type != null)
+            msg.add(addESOPStoUserInventory(user, "PERFORMANCE", quantity.intValue))
         else
-            msg.add(addESOPStoUserInventory(user,"NORMAL", quantity.intValue))
+            msg.add(addESOPStoUserInventory(user, "NORMAL", quantity.intValue))
 
-        response["message"]=msg
+        response["message"] = msg
         return HttpResponse.ok(response)
     }
 
-    fun addESOPStoUserInventory(user: User,type:String,esopQuantity:Int) : String
-    {
+    fun addESOPStoUserInventory(user: User, type: String, esopQuantity: Int): String {
 
-        if(type=="PERFORMANCE")
-        {
+        if (type == "PERFORMANCE") {
             user.inventory.addPerformanceESOPToFree(esopQuantity)
             return ("$esopQuantity $type ESOPs added to account")
         }
@@ -79,9 +79,9 @@ class InventoryController {
 
     }
 
-    fun checkIfUserExist(userName: String):ArrayList<String> {
+    fun checkIfUserExist(userName: String): ArrayList<String> {
         val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList,userName)
+        UserValidation().isUserExists(errorList, userName)
         return errorList
     }
 
