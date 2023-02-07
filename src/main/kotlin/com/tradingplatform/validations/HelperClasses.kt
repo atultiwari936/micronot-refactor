@@ -128,19 +128,6 @@ class OrderValidation {
 
     }
 
-    fun isFieldExists(fieldName: String, body: JsonObject): Boolean {
-        return body[fieldName] == null
-    }
-
-    fun isValidEsopType(list: ArrayList<String>, esopType: String): Boolean {
-        if (esopType == "PERFORMANCE" || esopType == "NORMAL") {
-            return true
-        }
-
-        list.add("ESOP type is not valid (Allowed : PERFORMANCE and NON-PERFORMANCE)")
-        return false
-    }
-
     fun isValidQuantity(list: ArrayList<String>, amount: Int): Boolean {
         if (amount <= 0 || amount > maxLimitForInventory) {
             list.add("Quantity is not valid. Range between 1 and $maxLimitForInventory")

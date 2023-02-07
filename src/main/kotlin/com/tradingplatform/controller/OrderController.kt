@@ -3,12 +3,12 @@ package com.tradingplatform.controller
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.model.*
-import com.tradingplatform.validations.UserReqValidation
+import com.tradingplatform.validations.OrderReqValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import kotlin.math.ceil
-import kotlin.math.roundToInt
+import com.tradingplatform.validations.UserReqValidation
+
 
 @Controller(value = "/user")
 class OrderController {
@@ -90,55 +90,21 @@ class OrderController {
 
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName: String): Any {
-        val response = mutableMapOf<String, Any>()
-        val errorList = arrayListOf<String>()
-        val fieldLists = arrayListOf("quantity", "type", "price")
-        for (field in fieldLists) {
-            if (OrderValidation().isFieldExists(field, body)) {
-                errorList.add("Enter the $field field")
-            }
-        }
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        var response: MutableMap<String, List<String>>? = UserReqValidation.isUserExists(userName)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
 
-
-        if (body["quantity"] == null || !body["quantity"]!!.isNumber || ceil(body["quantity"]!!.doubleValue).roundToInt() != body["quantity"]!!.intValue) {
-            errorList.add("Quantity is not valid")
-        }
-
-        if (body["price"] == null || !body["price"]!!.isNumber || ceil(body["price"]!!.doubleValue).roundToInt() != body["price"]!!.intValue) {
-            errorList.add("Price is not valid")
-
-        }
-
-        if (body["type"] == null || !body["type"]!!.isString || (body["type"]!!.stringValue != "SELL" && body["type"]!!.stringValue != "BUY")) {
-
-            errorList.add("Order Type is not valid")
-        }
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        response = OrderReqValidation.validateRequest(body)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
-
 
         val quantity = body["quantity"]!!.intValue
         val type = body["type"]!!.stringValue
         val price = body["price"]!!.intValue
         val esopType = if (body["esopType"] !== null) body["esopType"]!!.stringValue else "NORMAL"
-
-
-
-        OrderValidation().isValidQuantity(errorList, quantity)
-        OrderValidation().isValidAmount(errorList, price)
-        OrderValidation().isValidEsopType(errorList, esopType)
-
-
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        response = OrderReqValidation.isValueValid(quantity, price, esopType)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
 
         return orderHandler(userName, type, quantity, price, esopType)
     }
@@ -148,11 +114,6 @@ class OrderController {
         val response = mutableMapOf<String, Any>()
         var newOrder: Order? = null
 
-
-        val errorResponse = UserReqValidation.isUserExists(userName)
-
-        if (errorResponse != null)
-            return HttpResponse.badRequest(errorResponse)
 
         val user = UserRepo.getUser(userName)!!
 
