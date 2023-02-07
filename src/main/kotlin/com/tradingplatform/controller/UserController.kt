@@ -54,7 +54,7 @@ class UserController {
             return HttpResponse.badRequest(errorResponse)
         }
 
-        UserRepo().addUser(userData)
+        UserRepo.addUser(userData)
 
         val okResponse = HashMap<String, String>()
         okResponse["message"] = "User registered successfully"

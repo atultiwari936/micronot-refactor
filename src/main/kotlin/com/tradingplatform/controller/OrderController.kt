@@ -18,17 +18,15 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
         val allOrdersOfUser: MutableList<Order> = mutableListOf()
-
-
-        UserValidation().isUserExists(errorList, userName)
-
-        if (errorList.isNotEmpty()) {
+        val user=UserRepo.getUser(userName)
+        if(user !is User)
+        {
+            errorList.add("User does not exists")
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
 
-
-        val userOrderIds = Users[userName]!!.orders
+        val userOrderIds = user.orders
 
         allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
         allOrdersOfUser.addAll(getAllPendingOrdersOfUser(userName))
@@ -151,7 +149,7 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
         var newOrder: Order? = null
-        val user = UserRepo().getUser(userName)
+        val user = UserRepo.getUser(userName)
 
         if (user == null) {
             errorList.add("User doesn't exist")
