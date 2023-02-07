@@ -2,6 +2,7 @@ package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
+import com.tradingplatform.validations.UserReqValidation
 import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
@@ -78,13 +79,14 @@ class UserController {
 
         val response = mutableMapOf<String, Any>()
         val errorList = arrayListOf<String>()
-        val user = UserRepo.getUser(userName)
-//        UserValidation().isUserExists(errorList, userName)
-        if (user !is User) {
-            response["error"] = errorList
-            errorList.add("User does not exists")
-            return HttpResponse.badRequest(response)
-        }
+
+
+        val errorResponse = UserReqValidation.isUserExists(userName)
+
+        if (errorResponse != null)
+            return HttpResponse.badRequest(errorResponse)
+
+        val user = UserRepo.getUser(userName)!!
 
 
         val wallet = mutableMapOf<String, Int>()
@@ -93,8 +95,10 @@ class UserController {
 
         val inventory = mutableListOf<InventoryOutput>()
 
-        val normalInventory = InventoryOutput(user.inventory.esopNormal.free, user.inventory.esopNormal.locked, "NON_PERFORMANCE")
-        val performanceInventory = InventoryOutput(user.inventory.esopPerformance.free, user.inventory.esopPerformance.locked, "PERFORMANCE")
+        val normalInventory =
+            InventoryOutput(user.inventory.esopNormal.free, user.inventory.esopNormal.locked, "NON_PERFORMANCE")
+        val performanceInventory =
+            InventoryOutput(user.inventory.esopPerformance.free, user.inventory.esopPerformance.locked, "PERFORMANCE")
 
         inventory.add(normalInventory)
         inventory.add(performanceInventory)

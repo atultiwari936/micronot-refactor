@@ -30,9 +30,9 @@ class OrderControllerTest {
             .statusCode(400).and()
             .body(
                 "error",
-                Matchers.contains("Enter the quantity field"
-                    , "Enter the type field"
-                    , "Enter the price field")
+                Matchers.contains(
+                    "Enter the quantity field", "Enter the type field", "Enter the price field"
+                )
             )
     }
 
@@ -44,8 +44,12 @@ class OrderControllerTest {
             .post("/user/username/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Enter the type field",
-                "Enter the price field"))
+            .body(
+                "error", Matchers.contains(
+                    "Enter the type field",
+                    "Enter the price field"
+                )
+            )
     }
 
     @Test
@@ -102,7 +106,7 @@ class OrderControllerTest {
             .post("/user/atul/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("User doesn't exist"))
+            .body("error", Matchers.contains("User does not exists"))
 
     }
 
@@ -126,10 +130,12 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(200).and()
-            .body("orderId", Matchers.equalTo(0),
+            .body(
+                "orderId", Matchers.equalTo(0),
                 "quantity", Matchers.equalTo(1),
                 "type", Matchers.equalTo("BUY"),
-                "price", Matchers.equalTo(20))
+                "price", Matchers.equalTo(20)
+            )
     }
 
 
@@ -242,7 +248,7 @@ class OrderControllerTest {
             .post("/user/ll/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and ${maxLimitForInventory}"))
+            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and $maxLimitForInventory"))
     }
 
     @Test
@@ -260,7 +266,9 @@ class OrderControllerTest {
             )
             .post("/user/ll/order")
             .then()
-            .statusCode(400).and().body("error",
-                Matchers.contains("Order Type is not valid"))
+            .statusCode(400).and().body(
+                "error",
+                Matchers.contains("Order Type is not valid")
+            )
     }
 }
