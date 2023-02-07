@@ -26,9 +26,10 @@ class UserControllerTest {
             phoneNumber = "+912345678977",
             userName = "atul_99"
         )
-
         spec.`when`().header("Content-Type", "application/json").body(registerBody).post("/user/register").then()
             .statusCode(200).and().body("message", Matchers.comparesEqualTo("User registered successfully"))
+
+
     }
 
     @Test

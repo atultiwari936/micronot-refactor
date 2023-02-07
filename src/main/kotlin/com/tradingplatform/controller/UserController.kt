@@ -3,7 +3,6 @@ package com.tradingplatform.controller
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.UserReqValidation
-import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.MutableHttpResponse
@@ -16,13 +15,17 @@ class UserController {
     @Post(value = "/register", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
     fun register(@Body body: JsonObject): MutableHttpResponse<*>? {
 
-        var errorList = arrayListOf<String>()
-        val errorResponse = mutableMapOf<String, MutableList<String>>()
-
-        val response=UserReqValidation.ifValidFields(body)
-        if (response != null) {
+        val response=UserReqValidation.isValidReq(body)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
+
+        val registerSuccessfullyResponse=registerUser(body)
+
+        return HttpResponse.ok(registerSuccessfullyResponse)
+    }
+
+    private fun registerUser(body: JsonObject): HashMap<String, String> {
+        val okResponse = HashMap<String, String>()
 
         val userName = body["userName"]!!.stringValue
         val phoneNumber = body["phoneNumber"]!!.stringValue
@@ -37,29 +40,10 @@ class UserController {
             phoneNumber = phoneNumber
         )
 
-        errorList = checkIfInputDataIsValid(userData)
-
-        if (errorList.isNotEmpty()) {
-            errorResponse["error"] = errorList
-            return HttpResponse.badRequest(errorResponse)
-        }
-
         UserRepo.addUser(userData)
 
-        val okResponse = HashMap<String, String>()
         okResponse["message"] = "User registered successfully"
-
-        return HttpResponse.ok(okResponse)
-    }
-
-    fun checkIfInputDataIsValid(user: User): ArrayList<String> {
-        val errorList = arrayListOf<String>()
-        errorList.addAll(UserValidation().isEmailValid(user.email))
-        UserValidation().isPhoneValid(errorList, user.phoneNumber)
-        UserValidation().isUserNameValid(errorList, user.userName)
-        UserValidation().isNameValid(errorList, user.firstName)
-        UserValidation().isNameValid(errorList, user.lastName)
-        return errorList
+        return okResponse
     }
 
 

@@ -2,6 +2,7 @@ package com.tradingplatform.model
 
 
 import com.tradingplatform.data.UserRepo
+import com.tradingplatform.validations.UserReqValidation
 import com.tradingplatform.validations.UserValidation
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -33,7 +34,7 @@ class UserTest {
         8934"""
     )
     fun `email validation should return proper error message`(email: String) {
-        val errorMessages = UserValidation().isEmailValid(email)
+        val errorMessages = UserReqValidation.isEmailValid(email)
         assertTrue {
             errorMessages.contains("Invalid email format")
         }
@@ -56,7 +57,7 @@ class UserTest {
     )
     fun `proper email address should not have any error message`(email: String) {
 
-        val errorMessages = UserValidation().isEmailValid(email)
+        val errorMessages = UserReqValidation.isEmailValid(email)
 
         assertTrue(errorMessages.isEmpty())
     }
@@ -64,11 +65,10 @@ class UserTest {
     @Test
     fun `Test should return invalid username if username has unwanted special characters`() {
         val sampleUserName = ".."
-        val errorList = arrayListOf<String>()
 
-        val actualResponse = UserValidation().isUserNameValid(errorList, sampleUserName)
-
-        Assertions.assertEquals(false, actualResponse)
+        val actualResponse = UserReqValidation.isUserNameValid(sampleUserName)
+        Assertions.assertEquals(1,actualResponse.size)
+        Assertions.assertEquals("Invalid Username format", actualResponse[0])
     }
 
     @Test
@@ -76,49 +76,47 @@ class UserTest {
         val sampleUserName = "atul_99"
         val errorList = arrayListOf<String>()
 
-        val actualResponse = UserValidation().isUserNameValid(errorList, sampleUserName)
+        val actualResponse = UserReqValidation.isUserNameValid(sampleUserName)
 
-        Assertions.assertEquals(true, actualResponse)
+        Assertions.assertEquals(0, actualResponse.size)
     }
 
     @Test
     fun `Test should return invalid phone number if total digits is greater than 13 including country code in phone number`() {
         val samplePhoneNumber = "+91774678767989"
-        val errorList = arrayListOf<String>()
+        val actualResponse = UserReqValidation.isPhoneValid(samplePhoneNumber)
 
-        val actualResponse = UserValidation().isPhoneValid(errorList, samplePhoneNumber)
-
-        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(1,actualResponse.size)
+        Assertions.assertEquals("Invalid phoneNumber format", actualResponse[0])
     }
 
     @Test
     fun `Test should return invalid phone number if total digits is less than 11 including country code in phone number`() {
         val samplePhoneNumber = "+9123456789"
-        val errorList = arrayListOf<String>()
 
-        val actualResponse = UserValidation().isPhoneValid(errorList, samplePhoneNumber)
+        val actualResponse = UserReqValidation.isPhoneValid(samplePhoneNumber)
 
-        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(1,actualResponse.size)
+        Assertions.assertEquals("Invalid phoneNumber format", actualResponse[0])
+
     }
 
     @Test
     fun `Test should return valid phone number if total digits is between 10 and 14 including country code in phone number`() {
         val samplePhoneNumber = "+912345678998"
-        val errorList = arrayListOf<String>()
 
-        val actualResponse = UserValidation().isPhoneValid(errorList, samplePhoneNumber)
+        val actualResponse = UserReqValidation.isPhoneValid(samplePhoneNumber)
 
-        Assertions.assertEquals(true, actualResponse)
+        Assertions.assertEquals(0,actualResponse.size)
     }
 
     @Test
     fun `Test should return not a valid name if digits included in name`() {
         val sampleFirstName = "Atul0"
-        val errorList = arrayListOf<String>()
+        val actualResponse = UserReqValidation.isNameValid(sampleFirstName)
 
-        val actualResponse = UserValidation().isNameValid(errorList, sampleFirstName)
-
-        Assertions.assertEquals(false, actualResponse)
+        Assertions.assertEquals(1,actualResponse.size)
+        Assertions.assertEquals("Invalid Name format", actualResponse[0])
     }
 
 
@@ -129,12 +127,10 @@ class UserTest {
             userName = "atul"
         )
         UserRepo.addUser(user)
-        val errorList = arrayListOf<String>()
+        val actualResponse = UserReqValidation.isUserNameValid("atul")
 
-        val actualResponse = UserValidation().isUserNameValid(errorList, "atul")
-
-        Assertions.assertEquals(false, actualResponse)
-        Assertions.assertEquals(errorList[0], "Username already registered")
+        Assertions.assertEquals(1, actualResponse.size)
+        Assertions.assertEquals(actualResponse[0], "Username already registered")
     }
 
     @Test
@@ -144,11 +140,9 @@ class UserTest {
             userName = "atul"
         )
         UserRepo.addUser(user)
-        val errorList = arrayListOf<String>()
+        val actualResponse = UserReqValidation.isPhoneValid("+919877678987")
 
-        val actualResponse = UserValidation().isPhoneValid(errorList, "+919877678987")
-
-        Assertions.assertEquals(false, actualResponse)
-        Assertions.assertEquals(errorList[0], "phoneNumber already registered")
+        Assertions.assertEquals(1, actualResponse.size)
+        Assertions.assertEquals(actualResponse[0], "phoneNumber already registered")
     }
 }
