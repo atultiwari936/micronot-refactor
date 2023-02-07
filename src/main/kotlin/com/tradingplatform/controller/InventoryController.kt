@@ -70,12 +70,12 @@ class InventoryController {
 
         if(type=="PERFORMANCE")
         {
-            user.inventory.esopPerformance.free += esopQuantity
+            user.inventory.addPerformanceESOPToFree(esopQuantity)
             return ("${esopQuantity} ${type} ESOPs added to account")
         }
 
-        user.inventory.esopNormal.free += esopQuantity
-        return ("${esopQuantity} ESOPs added to account")
+        user.inventory.addNormalESOPToFree(esopQuantity)
+        return ("$esopQuantity ESOPs added to account")
 
     }
 
