@@ -1,12 +1,9 @@
 package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
-import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
 import com.tradingplatform.validations.InventoryReqValidation
-import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.validations.UserReqValidation
-import com.tradingplatform.validations.UserValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Body
@@ -14,8 +11,6 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.json.tree.JsonObject
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 
 @Controller(value = "user/{userName}")
@@ -44,26 +39,38 @@ class InventoryController {
         }
 
         val quantity = body["quantity"]
-
-
-
-        if (!quantity.isNumber || ceil(quantity.doubleValue).roundToInt() != quantity.intValue) {
-
-            errorList.add("Quantity data type is invalid")
-        } else if (OrderValidation().isValidQuantity(errorList, quantity.intValue)) {
-            if (!user.inventory.isInventoryWithinLimit(quantity.intValue)) {
-                errorList.add("Cannot place the order. Wallet amount will exceed ${PlatformData.MAX_INVENTORY_LIMIT}")
-            }
+        responseTemp=InventoryReqValidation.isQuantityValid(quantity)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
         }
+
+        responseTemp=InventoryReqValidation.isAmountWithinLimit(quantity.intValue)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
+        }
+        responseTemp=InventoryReqValidation.willQuantityExceedLimit(user,quantity.intValue)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
+        }
+
+
+
 
         val type = body["type"]
 
-        if (type != null && (!type.isString || type.stringValue != "PERFORMANCE")) {
-            errorList.add("ESOP type is invalid ( Allowed value : PERFORMANCE and NON-PERFORMANCE)")
+        responseTemp=InventoryReqValidation.isEsopTypeValid(type)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
         }
 
-        response["error"] = errorList
-        if (errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
         if (type != null)
             msg.add(addESOPStoUserInventory(user, "PERFORMANCE", quantity.intValue))
