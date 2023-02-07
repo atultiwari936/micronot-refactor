@@ -2,7 +2,6 @@ package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.OrderValidation
-import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
@@ -18,9 +17,8 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
         val allOrdersOfUser: MutableList<Order> = mutableListOf()
-        val user=UserRepo.getUser(userName)
-        if(user !is User)
-        {
+        val user = UserRepo.getUser(userName)
+        if (user !is User) {
             errorList.add("User does not exists")
             response["error"] = errorList
             return HttpResponse.badRequest(response)
@@ -87,7 +85,6 @@ class OrderController {
         }
         return pendingOrdersOfUser
     }
-
 
 
     @Post(value = "/{userName}/order")
@@ -158,16 +155,15 @@ class OrderController {
         }
 
 
+        val totalAmount = quantity * price
         if (type == "BUY") {
-            if (quantity * price > user.wallet.getFreeAmount()) errorList.add("Insufficient funds in wallet")
-            else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+            if (totalAmount > user.wallet.getFreeAmount()) {
+                errorList.add("Insufficient funds in wallet")
+            } else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
             else {
 
-                user.wallet.removeAmountFromFree(quantity * price)
-
-                user.wallet.addAmountToLocked( quantity * price)
-
-                user.inventory.credit += quantity
+                user.wallet.transferAmountFromFreeToLocked(totalAmount)
+                user.inventory.addESOPToCredit(quantity)
                 newOrder = Order("BUY", quantity, price, user, esopNormal)
                 user.orders.add(newOrder.id)
 
@@ -185,7 +181,7 @@ class OrderController {
                 else {
                     user.inventory.addPerformanceESOPToLocked(quantity)
                     user.inventory.removePerformanceESOPFromFree(quantity)
-                    user.wallet.credit += quantity * price
+                    user.wallet.credit += totalAmount
 
                     newOrder = Order("SELL", quantity, price, user, esopPerformance)
                     user.orders.add(newOrder.id)
@@ -194,11 +190,16 @@ class OrderController {
             } else if (esopType == "NORMAL") {
                 if (quantity > user.inventory.getNormalFreeQuantity()) {
                     errorList.add("Insufficient Normal ESOPs in inventory")
-                } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
+                } else if (!OrderValidation().isWalletAmountWithinLimit(
+                        errorList,
+                        user,
+                        (price * quantity * 0.98).toInt()
+                    )
+                )
                 else {
                     user.inventory.addNormalESOPToLocked(quantity)
                     user.inventory.removeNormalESOPFromFree(quantity)
-                    user.wallet.credit += (quantity * price * 0.98).toInt()
+                    user.wallet.credit += (totalAmount * 0.98).toInt()
 
                     newOrder = Order("SELL", quantity, price, user, esopNormal)
                     user.orders.add(newOrder.id)
