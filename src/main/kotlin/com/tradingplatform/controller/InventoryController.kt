@@ -3,6 +3,7 @@ package com.tradingplatform.controller
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
+import com.tradingplatform.validations.InventoryReqValidation
 import com.tradingplatform.validations.OrderValidation
 import com.tradingplatform.validations.UserReqValidation
 import com.tradingplatform.validations.UserValidation
@@ -24,6 +25,7 @@ class InventoryController {
         @Body body: JsonObject,
         @PathVariable(name = "userName") userName: String
     ): MutableHttpResponse<out Any>? {
+
         val response = mutableMapOf<String, MutableList<String>>()
         val msg = mutableListOf<String>()
         val errorList = ArrayList<String>()
@@ -34,12 +36,17 @@ class InventoryController {
 
         val user = UserRepo.getUser(userName)!!
 
-        val quantity = body["quantity"]
-        if (quantity == null) {
-            errorList.add("Quantity is missing")
+        var responseTemp=InventoryReqValidation.isQuantityNull(body["quantity"])
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
+
+        val quantity = body["quantity"]
+
+
+
         if (!quantity.isNumber || ceil(quantity.doubleValue).roundToInt() != quantity.intValue) {
 
             errorList.add("Quantity data type is invalid")
