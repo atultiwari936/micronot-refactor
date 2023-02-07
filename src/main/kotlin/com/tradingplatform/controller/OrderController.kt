@@ -183,8 +183,8 @@ class OrderController {
                     )
                 )
                 else {
-                    user.inventory.esopPerformance.locked += quantity
-                    user.inventory.esopPerformance.free -= quantity
+                    user.inventory.addPerformanceESOPToLocked(quantity)
+                    user.inventory.removePerformanceESOPFromFree(quantity)
                     user.wallet.credit += quantity * price
 
                     newOrder = Order("SELL", quantity, price, user, esopPerformance)
@@ -196,8 +196,8 @@ class OrderController {
                     errorList.add("Insufficient Normal ESOPs in inventory")
                 } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
                 else {
-                    user.inventory.esopNormal.locked += quantity
-                    user.inventory.esopNormal.free -= quantity
+                    user.inventory.addNormalESOPToLocked(quantity)
+                    user.inventory.removeNormalESOPFromFree(quantity)
                     user.wallet.credit += (quantity * price * 0.98).toInt()
 
                     newOrder = Order("SELL", quantity, price, user, esopNormal)
