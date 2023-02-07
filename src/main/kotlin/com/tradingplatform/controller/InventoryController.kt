@@ -24,7 +24,7 @@ class InventoryController {
         val errorList= ArrayList<String>()
 
         val user=UserRepo.getUser(userName)
-        if(user== null)
+        if(user !is User)
         {
             response["error"] = errorList
             errorList.add("User does not exists")
@@ -71,7 +71,7 @@ class InventoryController {
         if(type=="PERFORMANCE")
         {
             user.inventory.addPerformanceESOPToFree(esopQuantity)
-            return ("${esopQuantity} ${type} ESOPs added to account")
+            return ("$esopQuantity $type ESOPs added to account")
         }
 
         user.inventory.addNormalESOPToFree(esopQuantity)

@@ -174,7 +174,7 @@ class OrderController {
             }
         } else if (type == "SELL") {
             if (esopType == "PERFORMANCE") {
-                if (quantity > user.inventory.esopPerformance.free) {
+                if (quantity > user.inventory.getPerformanceFreeQuantity()) {
                     errorList.add("Insufficient Performance ESOPs in inventory")
                 } else if (!OrderValidation().isWalletAmountWithinLimit(
                         errorList,
@@ -192,7 +192,7 @@ class OrderController {
 
                 }
             } else if (esopType == "NORMAL") {
-                if (quantity > user.inventory.esopNormal.free) {
+                if (quantity > user.inventory.getNormalFreeQuantity()) {
                     errorList.add("Insufficient Normal ESOPs in inventory")
                 } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, (price * quantity * 0.98).toInt()))
                 else {

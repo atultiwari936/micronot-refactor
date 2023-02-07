@@ -46,10 +46,8 @@ class WalletController {
         if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
 
         user.wallet.addAmountToFree(amount.intValue)
-
         responseMap["message"] = "${amount.intValue} added to account"
         return HttpResponse.ok(responseMap)
     }
-
 
 }
