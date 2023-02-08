@@ -26,7 +26,7 @@ class OrderValidation {
 
         private fun isQuantityWithinLimit(quantity: Int): String? {
             if (quantity <= 0 || quantity > PlatformData.MAX_INVENTORY_LIMIT) {
-                return "Quantity is not valid. Range between 1 and $PlatformData.MAX_INVENTORY_LIMIT"
+                return "Quantity is not valid. Range between 1 and ${PlatformData.MAX_INVENTORY_LIMIT}"
             }
             return null
         }
@@ -36,7 +36,7 @@ class OrderValidation {
             if (price <= 0) {
                 return "Enter a positive price"
             } else if (price > Wallet.MAX_WALLET_LIMIT) {
-                return "Enter price between 0 to $Wallet.MAX_WALLET_LIMIT"
+                return "Enter price between 0 to ${Wallet.MAX_WALLET_LIMIT}"
             }
             return null
         }
@@ -69,7 +69,7 @@ class OrderValidation {
             return false
         } else if (amount > Wallet.MAX_WALLET_LIMIT) {
 
-            list.add("Enter amount between 0 to $Wallet.MAX_WALLET_LIMIT")
+            list.add("Enter amount between 0 to ${Wallet.MAX_WALLET_LIMIT}")
             return false
         }
         return true
@@ -78,7 +78,7 @@ class OrderValidation {
 
     fun isWalletAmountWithinLimit(list: ArrayList<String>, user: User, amount: Int): Boolean {
         if (!user.wallet.isWalletAmountWithinLimit(amount)) {
-            list.add("Cannot place the order. Wallet amount will exceed $Wallet.MAX_WALLET_LIMIT")
+            list.add("Cannot place the order. Wallet amount will exceed ${Wallet.MAX_WALLET_LIMIT}")
             return false
         }
         return true
