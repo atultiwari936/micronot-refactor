@@ -1,11 +1,7 @@
 package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
-import com.tradingplatform.model.BuyOrders
-import com.tradingplatform.model.CompletedOrders
-import com.tradingplatform.model.SellOrders
-import com.tradingplatform.model.User
-import com.tradingplatform.validations.maxLimitForWallet
+import com.tradingplatform.model.*
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
@@ -59,7 +55,7 @@ class WalletControllerTest {
             .post("/user/${user.userName}/wallet")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Enter amount between 0 to $maxLimitForWallet"))
+            .body("error", Matchers.contains("Enter amount between 0 to ${Wallet.MAX_WALLET_LIMIT}"))
 
 
     }
