@@ -52,7 +52,6 @@ class OrderService {
 
             newOrder = Order("BUY", quantity, price, user, esopNormal)
             user.orders.add(newOrder.id)
-            BuyOrders.add(newOrder)
         } else if (type == "SELL") {
             updateWalletAndInventoryForSellOrder(user, order)
 
@@ -87,9 +86,11 @@ class OrderService {
             OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity)
             OrderValidation().isSufficientPerformanceEsopsQuantity(errorList, user, quantity)
 
-            user.inventory.addPerformanceESOPToLocked(quantity)
-            user.inventory.removePerformanceESOPFromFree(quantity)
-            user.inventory.addESOPToCredit(price * quantity)
+            if (errorList.isEmpty()) {
+                user.inventory.addPerformanceESOPToLocked(quantity)
+                user.inventory.removePerformanceESOPFromFree(quantity)
+                user.wallet.addCredits(price * quantity)
+            }
         } else if (order.esopType == "NORMAL") {
             OrderValidation().isWalletAmountWithinLimit(
                 errorList,
@@ -98,8 +99,11 @@ class OrderService {
             )
             OrderValidation().isSufficientNonPerformanceEsopsQuantity(errorList, user, quantity)
 
-            user.inventory.removeNormalESOPFromFree(quantity)
-            user.inventory.addESOPToCredit(price * quantity - PlatformData.calculatePlatformFees(price * quantity))
+            if (errorList.isEmpty()) {
+                user.inventory.addNormalESOPToLocked(quantity)
+                user.inventory.removeNormalESOPFromFree(quantity)
+                user.inventory.addESOPToCredit(price * quantity - PlatformData.calculatePlatformFees(price * quantity))
+            }
         }
     }
 
@@ -108,7 +112,7 @@ class OrderService {
     }
 
     private fun addEsopCreditToInventory(buyer: User, quantity: Int) {
-        buyer.inventory.addNormalESOPToLocked(quantity)
+        buyer.inventory.addESOPToCredit(quantity)
     }
 
     fun updateTransactionsOfOrder(allOrdersOfUser: MutableList<Order>) {
