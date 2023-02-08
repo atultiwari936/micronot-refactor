@@ -1,11 +1,11 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.maxLimitForInventory
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -17,39 +17,49 @@ class OrderControllerTest {
         CompletedOrders.clear()
         BuyOrders.clear()
         SellOrders.clear()
-        Users.clear()
+        UserRepo.users.clear()
     }
 
     @Test
     fun `check if order request has missing quantity,type and price fields`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("{}")
-            .post("/user/username/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
             .body(
                 "error",
-                Matchers.contains("Enter the quantity field"
-                    , "Enter the type field"
-                    , "Enter the price field")
+                Matchers.contains(
+                    "Enter the quantity field", "Enter the type field", "Enter the price field"
+                )
             )
     }
 
     @Test
     fun `check if order request has missing type and price fields`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""{"quantity":1}""")
-            .post("/user/username/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Enter the type field",
-                "Enter the price field"))
+            .body(
+                "error", Matchers.contains(
+                    "Enter the type field",
+                    "Enter the price field"
+                )
+            )
     }
 
     @Test
     fun `check if order request quantity is integer`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -61,14 +71,16 @@ class OrderControllerTest {
                 }
             """.trimIndent()
             )
-            .post("/user/username/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Quantity is not valid"))
+            .body("error", Matchers.contains("Enter a valid quantity"))
     }
 
     @Test
     fun `check if order request type is string`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -80,7 +92,7 @@ class OrderControllerTest {
                 }
             """.trimIndent()
             )
-            .post("/user/username/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
             .body("error", Matchers.contains("Order Type is not valid"))
@@ -102,15 +114,15 @@ class OrderControllerTest {
             .post("/user/atul/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("User doesn't exist"))
+            .body("error", Matchers.contains("User does not exists"))
 
     }
 
     @Test
     fun `Check if successful order is placed if order request is valid`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
-        user.walletFree = 100
+        UserRepo.users[user.userName] = user
+        user.wallet.addAmountToFree(100)
 
         spec.`when`()
             .header("Content-Type", "application/json")
@@ -126,18 +138,20 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(200).and()
-            .body("orderId", Matchers.equalTo(0),
+            .body(
+                "orderId", Matchers.equalTo(0),
                 "quantity", Matchers.equalTo(1),
                 "type", Matchers.equalTo("BUY"),
-                "price", Matchers.equalTo(20))
+                "price", Matchers.equalTo(20)
+            )
     }
 
 
     @Test
     fun `Check if error is returned if free wallet balance is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
-        user.walletFree = 10
+        UserRepo.users[user.userName] = user
+        user.wallet.addAmountToFree(10)
 
         spec.`when`()
             .header("Content-Type", "application/json")
@@ -160,7 +174,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
 
 
         spec.`when`()
@@ -184,7 +198,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if performance inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        Users[user.userName] = user
+        UserRepo.users[user.userName] = user
 
 
         spec.`when`()
@@ -208,6 +222,8 @@ class OrderControllerTest {
 
     @Test
     fun `check if error message is added if price exceed specified limit`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -219,15 +235,17 @@ class OrderControllerTest {
                 }
             """.trimIndent()
             )
-            .post("/user/ll/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Price is not valid"))
+            .body("error", Matchers.contains("Enter a valid price"))
 
     }
 
     @Test
     fun `check if error message is added if quantity exceed specified limit`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -239,14 +257,16 @@ class OrderControllerTest {
                 }
             """.trimIndent()
             )
-            .post("/user/ll/order")
+            .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and ${maxLimitForInventory}"))
+            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and $maxLimitForInventory"))
     }
 
     @Test
     fun `check if error message is returned when order type is invalid`(spec: RequestSpecification) {
+        val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
+        UserRepo.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -258,9 +278,11 @@ class OrderControllerTest {
                 }
             """.trimIndent()
             )
-            .post("/user/ll/order")
+            .post("/user/${user.userName}/order")
             .then()
-            .statusCode(400).and().body("error",
-                Matchers.contains("Order Type is not valid"))
+            .statusCode(400).and().body(
+                "error",
+                Matchers.contains("Order Type is not valid")
+            )
     }
 }

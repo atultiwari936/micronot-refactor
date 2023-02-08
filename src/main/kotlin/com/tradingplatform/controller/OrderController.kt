@@ -1,13 +1,14 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.OrderValidation
-import com.tradingplatform.validations.UserValidation
 import com.tradingplatform.model.*
+import com.tradingplatform.validations.OrderReqValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.*
 import io.micronaut.json.tree.JsonObject
-import kotlin.math.ceil
-import kotlin.math.roundToInt
+import com.tradingplatform.validations.UserReqValidation
+
 
 @Controller(value = "/user")
 class OrderController {
@@ -17,17 +18,14 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, MutableList<String>>()
         val allOrdersOfUser: MutableList<Order> = mutableListOf()
-
-
-        UserValidation().isUserExists(errorList, userName)
-
-        if (errorList.isNotEmpty()) {
+        val user = UserRepo.getUser(userName)
+        if (user !is User) {
+            errorList.add("User does not exists")
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
 
-
-        val userOrderIds = Users[userName]!!.orders
+        val userOrderIds = user.orders
 
         allOrdersOfUser.addAll(getAllCompletedOrdersOfUser(userOrderIds))
         allOrdersOfUser.addAll(getAllPendingOrdersOfUser(userName))
@@ -77,12 +75,12 @@ class OrderController {
 
         val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
         for (order in SellOrders) {
-            if (userName == order.createdBy) {
+            if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
         }
         for (order in BuyOrders) {
-            if (userName == order.createdBy) {
+            if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
         }
@@ -90,58 +88,23 @@ class OrderController {
     }
 
 
-
     @Post(value = "/{userName}/order")
     fun createOrder(@Body body: JsonObject, @QueryValue userName: String): Any {
-        val response = mutableMapOf<String, Any>()
-        val errorList = arrayListOf<String>()
-        val fieldLists = arrayListOf("quantity", "type", "price")
-        for (field in fieldLists) {
-            if (OrderValidation().isFieldExists(field, body)) {
-                errorList.add("Enter the $field field")
-            }
-        }
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        var response: MutableMap<String, List<String>>? = UserReqValidation.isUserExists(userName)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
 
-
-        if (body["quantity"] == null || !body["quantity"]!!.isNumber || ceil(body["quantity"]!!.doubleValue).roundToInt() != body["quantity"]!!.intValue) {
-            errorList.add("Quantity is not valid")
-        }
-
-        if (body["price"] == null || !body["price"]!!.isNumber || ceil(body["price"]!!.doubleValue).roundToInt() != body["price"]!!.intValue) {
-            errorList.add("Price is not valid")
-
-        }
-
-        if (body["type"] == null || !body["type"]!!.isString || (body["type"]!!.stringValue != "SELL" && body["type"]!!.stringValue != "BUY")) {
-
-            errorList.add("Order Type is not valid")
-        }
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        response = OrderReqValidation.validateRequest(body)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
-
 
         val quantity = body["quantity"]!!.intValue
         val type = body["type"]!!.stringValue
         val price = body["price"]!!.intValue
         val esopType = if (body["esopType"] !== null) body["esopType"]!!.stringValue else "NORMAL"
-
-
-
-        OrderValidation().isValidQuantity(errorList, quantity)
-        OrderValidation().isValidAmount(errorList, price)
-        OrderValidation().isValidEsopType(errorList, esopType)
-
-
-        if (errorList.isNotEmpty()) {
-            response["error"] = errorList
+        response = OrderReqValidation.isValueValid(quantity, price, esopType)
+        if (response != null)
             return HttpResponse.badRequest(response)
-        }
 
         return orderHandler(userName, type, quantity, price, esopType)
     }
@@ -150,56 +113,58 @@ class OrderController {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
         var newOrder: Order? = null
-        if (Users.containsKey(userName)) {
-            val user = Users[userName]!!
 
-            if (type == "BUY") {
-                if (quantity * price > user.walletFree) errorList.add("Insufficient funds in wallet")
-                else if (!OrderValidation().isInventoryWithinLimit(errorList, user, quantity))
+
+        val user = UserRepo.getUser(userName)!!
+
+
+        val totalAmount = quantity * price
+        if (type == "BUY") {
+            if (totalAmount > user.wallet.getFreeAmount()) {
+                errorList.add("Insufficient funds in wallet")
+            } else if (!user.inventory.isInventoryWithinLimit(quantity)) {
+                errorList.add("Cannot place the order. Wallet amount will exceed ${PlatformData.MAX_INVENTORY_LIMIT}")
+            } else {
+
+                user.wallet.transferAmountFromFreeToLocked(totalAmount)
+                user.inventory.addESOPToCredit(quantity)
+                newOrder = Order("BUY", quantity, price, user, esopNormal)
+                user.orders.add(newOrder.id)
+
+            }
+        } else if (type == "SELL") {
+            if (esopType == "PERFORMANCE") {
+                if (quantity > user.inventory.getPerformanceFreeQuantity()) {
+                    errorList.add("Insufficient Performance ESOPs in inventory")
+                } else if (!OrderValidation().isWalletAmountWithinLimit(
+                        errorList, user, price * quantity
+                    )
+                )
                 else {
-                    user.walletFree -= quantity * price
-                    user.walletLocked += quantity * price
+                    user.inventory.addPerformanceESOPToLocked(quantity)
+                    user.inventory.removePerformanceESOPFromFree(quantity)
+                    user.wallet.credit += totalAmount
 
-                    user.pendingCreditEsop += quantity
-                    newOrder = Order("BUY", quantity, price, userName, esopNormal)
+                    newOrder = Order("SELL", quantity, price, user, esopPerformance)
                     user.orders.add(newOrder.id)
 
                 }
-            } else if (type == "SELL") {
-                if (esopType == "PERFORMANCE") {
-                    if (quantity > user.perfFree) {
-                        errorList.add("Insufficient Performance ESOPs in inventory")
-                    } else if (!OrderValidation().isWalletAmountWithinLimit(
-                            errorList,
-                            user,
-                            price * quantity.toDouble()
-                        )
+            } else if (esopType == "NORMAL") {
+                if (quantity > user.inventory.getNormalFreeQuantity()) {
+                    errorList.add("Insufficient Normal ESOPs in inventory")
+                } else if (!OrderValidation().isWalletAmountWithinLimit(
+                        errorList, user, (price * quantity * 0.98).toInt()
                     )
-                    else {
-                        user.perfLocked += quantity
-                        user.perfFree -= quantity
-                        user.pendingCreditAmount += quantity * price
+                )
+                else {
+                    user.inventory.addNormalESOPToLocked(quantity)
+                    user.inventory.removeNormalESOPFromFree(quantity)
+                    user.wallet.credit += (totalAmount * 0.98).toInt()
 
-                        newOrder = Order("SELL", quantity, price, userName, esopPerformance)
-                        user.orders.add(newOrder.id)
-
-                    }
-                } else if (esopType == "NORMAL") {
-                    if (quantity > user.inventoryFree) {
-                        errorList.add("Insufficient Normal ESOPs in inventory")
-                    } else if (!OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity * 0.98))
-                    else {
-                        user.inventoryLocked += quantity
-                        user.inventoryFree -= quantity
-                        user.pendingCreditAmount += (quantity * price * 0.98).toInt()
-
-                        newOrder = Order("SELL", quantity, price, userName, esopNormal)
-                        user.orders.add(newOrder.id)
-                    }
+                    newOrder = Order("SELL", quantity, price, user, esopNormal)
+                    user.orders.add(newOrder.id)
                 }
             }
-        } else {
-            errorList.add("User doesn't exist")
         }
 
         response["error"] = errorList

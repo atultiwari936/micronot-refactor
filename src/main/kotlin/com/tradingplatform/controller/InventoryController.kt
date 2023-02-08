@@ -1,8 +1,9 @@
 package com.tradingplatform.controller
 
-import com.tradingplatform.validations.OrderValidation
-import com.tradingplatform.validations.UserValidation
-import com.tradingplatform.model.Users
+import com.tradingplatform.data.UserRepo
+import com.tradingplatform.model.User
+import com.tradingplatform.validations.InventoryReqValidation
+import com.tradingplatform.validations.UserReqValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Body
@@ -10,75 +11,85 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.json.tree.JsonObject
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 
 @Controller(value = "user/{userName}")
 class InventoryController {
-    @Post(value="/inventory")
-    fun addInventory(@Body body: JsonObject, @PathVariable(name="userName")userName: String): MutableHttpResponse<out Any>? {
+    @Post(value = "/inventory")
+    fun addInventory(
+        @Body body: JsonObject,
+        @PathVariable(name = "userName") userName: String
+    ): MutableHttpResponse<out Any>? {
+
         val response = mutableMapOf<String, MutableList<String>>()
         val msg = mutableListOf<String>()
-        val errorList=checkIfUserExist(userName)
+        val errorList = ArrayList<String>()
 
+        val errorResponse = UserReqValidation.isUserExists(userName)
+        if (errorResponse != null)
+            return HttpResponse.badRequest(errorResponse)
 
-        response["error"] = errorList
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
+        val user = UserRepo.getUser(userName)!!
 
-        val quantity = body["quantity"]
-        if(quantity ==null)
-        {
-            errorList.add("Quantity is missing")
+        var responseTemp=InventoryReqValidation.isQuantityNull(body["quantity"])
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
             response["error"] = errorList
             return HttpResponse.badRequest(response)
         }
-        if(!quantity.isNumber || ceil(quantity.doubleValue).roundToInt()!= quantity.intValue) {
 
-            errorList.add("Quantity data type is invalid")
+        val quantity = body["quantity"]
+        responseTemp=InventoryReqValidation.isQuantityValid(quantity)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
         }
-        else if(OrderValidation().isValidQuantity(errorList, quantity.intValue)){
-            OrderValidation().isInventoryWithinLimit(errorList, Users[userName]!!, quantity.intValue)
+
+        responseTemp=InventoryReqValidation.isAmountWithinLimit(quantity.intValue)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
         }
+        responseTemp=InventoryReqValidation.willQuantityExceedLimit(user,quantity.intValue)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
+        }
+
+
+
 
         val type = body["type"]
 
-        if(type !=null &&( !type.isString|| type.stringValue!="PERFORMANCE"))
-        {
-            errorList.add("ESOP type is invalid ( Allowed value : PERFORMANCE and NON-PERFORMANCE)")
+        responseTemp=InventoryReqValidation.isEsopTypeValid(type)
+        if(responseTemp !=null) {
+            errorList.add(responseTemp)
+            response["error"] = errorList
+            return HttpResponse.badRequest(response)
         }
 
-        response["error"] = errorList
 
-        if(errorList.isNotEmpty()) return HttpResponse.badRequest(response)
-
-        if(type !=null)
-            msg.add(addESOPStoUserInventory(userName,"PERFORMANCE", quantity.intValue))
+        if (type != null)
+            msg.add(addESOPStoUserInventory(user, "PERFORMANCE", quantity.intValue))
         else
-            msg.add(addESOPStoUserInventory(userName,"NORMAL", quantity.intValue))
+            msg.add(addESOPStoUserInventory(user, "NORMAL", quantity.intValue))
 
-        response["message"]=msg
+        response["message"] = msg
         return HttpResponse.ok(response)
     }
 
-    fun addESOPStoUserInventory(userName: String,type:String,esopQuantity:Int) : String
-    {
-        if(type=="PERFORMANCE")
-        {
-            Users[userName]!!.perfFree+=esopQuantity
-            return ("${esopQuantity} ${type} ESOPs added to account")
+    fun addESOPStoUserInventory(user: User, type: String, esopQuantity: Int): String {
+
+        if (type == "PERFORMANCE") {
+            user.inventory.addPerformanceESOPToFree(esopQuantity)
+            return ("$esopQuantity $type ESOPs added to account")
         }
 
-        Users[userName]!!.inventoryFree+=esopQuantity
-        return ("${esopQuantity} ESOPs added to account")
+        user.inventory.addNormalESOPToFree(esopQuantity)
+        return ("$esopQuantity ESOPs added to account")
 
     }
-
-    fun checkIfUserExist(userName: String): ArrayList<String> {
-        val errorList = arrayListOf<String>()
-        UserValidation().isUserExists(errorList,userName)
-        return errorList
-    }
-
-
 }

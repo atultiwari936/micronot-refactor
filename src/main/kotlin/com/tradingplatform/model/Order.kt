@@ -10,7 +10,7 @@ const val esopPerformance = 1
 
 data class PriceQtyPair(val price: Int, var quantity: Int) //Utility class to make the response json pretty
 
-data class Order constructor(val type : String, val qty: Int, val price : Int, val createdBy : String, val esopType: Int= esopNormal) {
+data class Order (val type : String, val qty: Int, val price : Int, val user : User, val esopType: Int= esopNormal) {
      var status = "unfilled"
     var filled = ArrayList<PriceQtyPair>()
     val id:Pair<Int,Int> = Pair(BuyOrders.size + SellOrders.size + CompletedOrders.size*2,esopType)
@@ -44,25 +44,26 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
                 filledQty += potentialSellOrderQty
 
 
-                Users[createdBy]!!.walletLocked -= potentialSellOrderQty * price
-                Users[createdBy]!!.walletFree += potentialSellOrderQty * (price - potentialSellOrder.price)
-                Users[createdBy]!!.inventoryFree += potentialSellOrderQty
-                Users[createdBy]!!.pendingCreditEsop -= potentialSellOrderQty
+                user.wallet.removeAmountFromLocked(potentialSellOrderQty * price)
+                user.wallet.addAmountToFree(potentialSellOrderQty * (price - potentialSellOrder.price))
+                user.inventory.addNormalESOPToFree(potentialSellOrderQty)
+
+                user.inventory.removeESOPFromCredit(potentialSellOrderQty)
 
 
                 potentialSellOrder.filled.add(PriceQtyPair(potentialSellOrder.price, potentialSellOrderQty))
                 potentialSellOrder.filledQty += potentialSellOrderQty
 
                 if (potentialSellOrder.id.second == 1) {
-                    Users[potentialSellOrder.createdBy]!!.walletFree += potentialSellOrderQty * potentialSellOrder.price
-                    Users[potentialSellOrder.createdBy]!!.perfLocked -= potentialSellOrderQty
+                    potentialSellOrder.user.wallet.addAmountToFree( potentialSellOrderQty * potentialSellOrder.price)
+                    potentialSellOrder.user.inventory.removePerformanceESOPFromLocked(potentialSellOrderQty)
                 } else {
 
                     val taxAmount : Int = ceil(potentialSellOrderQty * potentialSellOrder.price*0.02).toInt()
 
-                    Users[potentialSellOrder.createdBy]!!.walletFree +=(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
+                    potentialSellOrder.user.wallet.addAmountToFree(potentialSellOrderQty*potentialSellOrder.price-taxAmount)
                     PlatformData.feesEarned += BigInteger(taxAmount.toString())
-                    Users[potentialSellOrder.createdBy]!!.inventoryLocked -= potentialSellOrderQty
+                    potentialSellOrder.user.inventory.removeNormalESOPFromLocked(potentialSellOrderQty)
                 }
 
 
@@ -104,28 +105,28 @@ data class Order constructor(val type : String, val qty: Int, val price : Int, v
 
 
                 if (id.second == 1){
-                    Users[createdBy]!!.perfLocked -= potentialBuyOrderQty
-                    Users[createdBy]!!.walletFree += potentialBuyOrderQty * price
-                    Users[createdBy]!!.pendingCreditAmount -= potentialBuyOrderQty * price
+                    user.inventory.removePerformanceESOPFromLocked(potentialBuyOrderQty)
+                    user.wallet.addAmountToFree( potentialBuyOrderQty * price)
+                    user.wallet.removeAmountFromCredit( potentialBuyOrderQty * price)
                 }
                 else {
 
                     val taxAmount : Int = ceil(potentialBuyOrderQty * price*0.02).toInt()
 
-                    Users[createdBy]!!.walletFree += (potentialBuyOrderQty * price - taxAmount)
-                    Users[createdBy]!!.pendingCreditAmount -= (potentialBuyOrderQty * price - taxAmount)
+                    user.wallet.addAmountToFree (potentialBuyOrderQty * price - taxAmount)
+                    user.wallet.removeAmountFromCredit (potentialBuyOrderQty * price - taxAmount)
                     PlatformData.feesEarned += BigInteger(taxAmount.toString())
-                    Users[createdBy]!!.inventoryLocked -= potentialBuyOrderQty
+                    user.inventory.removeNormalESOPFromLocked(potentialBuyOrderQty)
 
                 }
 
 
                 potentialBuyOrder.filled.add(PriceQtyPair(price,potentialBuyOrderQty))
                 potentialBuyOrder.filledQty += potentialBuyOrderQty
-                Users[potentialBuyOrder.createdBy]!!.walletLocked -= potentialBuyOrderQty *potentialBuyOrder.price
+                potentialBuyOrder.user.wallet.removeAmountFromLocked( potentialBuyOrderQty *potentialBuyOrder.price)
 
-                Users[potentialBuyOrder.createdBy]!!.walletFree += potentialBuyOrderQty * (potentialBuyOrder.price - price)
-                Users[potentialBuyOrder.createdBy]!!.inventoryFree += potentialBuyOrderQty
+                potentialBuyOrder.user.wallet.addAmountToFree( potentialBuyOrderQty * (potentialBuyOrder.price - price))
+                potentialBuyOrder.user.inventory.addNormalESOPToFree(potentialBuyOrderQty)
                 if(potentialBuyOrder.filledQty < potentialBuyOrder.qty && potentialBuyOrder.filledQty > 0) potentialBuyOrder.status = "partially filled"
                 BuyOrders.add(potentialBuyOrder)
                 if(potentialBuyOrder.filledQty == potentialBuyOrder.qty) {
