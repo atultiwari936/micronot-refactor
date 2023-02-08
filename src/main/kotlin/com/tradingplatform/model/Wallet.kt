@@ -1,6 +1,6 @@
 package com.tradingplatform.model
 
-class Wallet(var free: Int, var locked: Int, var credit: Int) {
+class Wallet(private var free: Int, private var locked: Int, var credit: Int) {
     val MAX_WALLET_LIMIT = 10000000
 
     fun getFreeAmount(): Int {

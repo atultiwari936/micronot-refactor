@@ -26,14 +26,6 @@ class OrderValidation {
 
     }
 
-    fun isValidQuantity(list: ArrayList<String>, amount: Int): Boolean {
-        if (amount <= 0 || amount > maxLimitForInventory) {
-            list.add("Quantity is not valid. Range between 1 and $maxLimitForInventory")
-            return false
-        }
-        return true
-    }
-
     fun isWalletAmountWithinLimit(list: ArrayList<String>, user: User, amount: Int): Boolean {
         if (!user.wallet.isWalletAmountWithinLimit(amount)) {
             list.add("Cannot place the order. Wallet amount will exceed $maxLimitForWallet")
