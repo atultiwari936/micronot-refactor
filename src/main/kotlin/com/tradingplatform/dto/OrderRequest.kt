@@ -1,7 +1,6 @@
 package com.tradingplatform.dto
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.core.annotation.Introspected
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
@@ -18,5 +17,5 @@ class OrderRequest @JsonCreator constructor (
     @field:NotNull(message = "price is required")
     @field:NotBlank(message = "price is required")
     var price: Int? = null,
-    var esopType: String? = null
+    var esopType: String? = "NORMAL"
 )

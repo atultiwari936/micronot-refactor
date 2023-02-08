@@ -1,8 +1,6 @@
 package com.tradingplatform.model
 
-import com.tradingplatform.validations.maxLimitForInventory
-
-class Inventory(var esopNormal: ESOPType, var esopPerformance: ESOPType, var credit: Int) {
+class Inventory(var esopNormal: ESOPQuantity, var esopPerformance: ESOPQuantity, var credit: Int) {
     fun getNormalFreeQuantity(): Int {
         return esopNormal.free
     }
@@ -55,6 +53,4 @@ class Inventory(var esopNormal: ESOPType, var esopPerformance: ESOPType, var cre
     fun isInventoryWithinLimit(quantity: Int): Boolean {
         return esopNormal.free + esopNormal.locked + esopPerformance.free + esopPerformance.locked + credit + quantity <= PlatformData.MAX_INVENTORY_LIMIT
     }
-
-
 }

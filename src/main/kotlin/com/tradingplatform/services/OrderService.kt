@@ -1,6 +1,7 @@
 package com.tradingplatform.services
 
 import com.tradingplatform.data.UserRepo
+import com.tradingplatform.dto.OrderRequest
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.OrderValidation
 import io.micronaut.http.HttpResponse
@@ -36,62 +37,27 @@ class OrderService {
         return completedOrdersOfUser
     }
 
-    fun orderHandler(userName: String, type: String, quantity: Int, price: Int, esopType: String = "NORMAL"): Any {
+    fun placeOrder(userName: String, order: OrderRequest): Any {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
+        val user = UserRepo.getUser(userName)!!
+        val quantity = order.quantity!!
+        val price = order.price!!
+        val type = order.type!!
         var newOrder: Order? = null
 
-
-        val user = UserRepo.getUser(userName)!!
-
-
-        val totalAmount = quantity * price
         if (type == "BUY") {
-            if (totalAmount > user.wallet.getFreeAmount()) {
-                errorList.add("Insufficient funds in wallet")
-            } else if (!user.inventory.isInventoryWithinLimit(quantity)) {
-                errorList.add("Cannot place the order. Wallet amount will exceed ${PlatformData.MAX_INVENTORY_LIMIT}")
-            } else {
+            errorList.addAll(OrderValidation.validateBuyOrder(order, user))
+            updateWalletAndInventoryForBuyOrder(user, order)
 
-                user.wallet.transferAmountFromFreeToLocked(totalAmount)
-                user.inventory.addESOPToCredit(quantity)
-                newOrder = Order("BUY", quantity, price, user, esopNormal)
-                user.orders.add(newOrder.id)
-
-            }
+            newOrder = Order("BUY", quantity, price, user, esopNormal)
+            user.orders.add(newOrder.id)
+            BuyOrders.add(newOrder)
         } else if (type == "SELL") {
-            if (esopType == "PERFORMANCE") {
-                if (quantity > user.inventory.getPerformanceFreeQuantity()) {
-                    errorList.add("Insufficient Performance ESOPs in inventory")
-                } else if (!OrderValidation().isWalletAmountWithinLimit(
-                        errorList, user, price * quantity
-                    )
-                )
-                else {
-                    user.inventory.addPerformanceESOPToLocked(quantity)
-                    user.inventory.removePerformanceESOPFromFree(quantity)
-                    user.wallet.credit += totalAmount
+            updateWalletAndInventoryForSellOrder(user, order)
 
-                    newOrder = Order("SELL", quantity, price, user, esopPerformance)
-                    user.orders.add(newOrder.id)
-
-                }
-            } else if (esopType == "NORMAL") {
-                if (quantity > user.inventory.getNormalFreeQuantity()) {
-                    errorList.add("Insufficient Normal ESOPs in inventory")
-                } else if (!OrderValidation().isWalletAmountWithinLimit(
-                        errorList, user, (price * quantity * 0.98).toInt()
-                    )
-                )
-                else {
-                    user.inventory.addNormalESOPToLocked(quantity)
-                    user.inventory.removeNormalESOPFromFree(quantity)
-                    user.wallet.credit += (totalAmount * 0.98).toInt()
-
-                    newOrder = Order("SELL", quantity, price, user, esopNormal)
-                    user.orders.add(newOrder.id)
-                }
-            }
+            newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).sortOrder)
+            user.orders.add(newOrder.id)
         }
 
         response["error"] = errorList
@@ -105,6 +71,44 @@ class OrderService {
         response["price"] = price
 
         return HttpResponse.ok(response)
+    }
+
+    private fun updateWalletAndInventoryForBuyOrder(user: User, order: OrderRequest) {
+        lockBuyerWalletAmount(user, order.quantity!! * order.price!!)
+        addEsopCreditToInventory(user, order.quantity!!)
+    }
+
+    private fun updateWalletAndInventoryForSellOrder(user: User, order: OrderRequest) {
+        val quantity = order.quantity!!
+        val price = order.price!!
+        val errorList = arrayListOf<String>()
+
+        if (order.esopType == "PERFORMANCE") {
+            OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity)
+            OrderValidation().isSufficientPerformanceEsopsQuantity(errorList, user, quantity)
+
+            user.inventory.addPerformanceESOPToLocked(quantity)
+            user.inventory.removePerformanceESOPFromFree(quantity)
+            user.inventory.addESOPToCredit(price * quantity)
+        } else if (order.esopType == "NORMAL") {
+            OrderValidation().isWalletAmountWithinLimit(
+                errorList,
+                user,
+                (price * quantity - PlatformData.calculatePlatformFees(price * quantity))
+            )
+            OrderValidation().isSufficientNonPerformanceEsopsQuantity(errorList, user, quantity)
+
+            user.inventory.removeNormalESOPFromFree(quantity)
+            user.inventory.addESOPToCredit(price * quantity - PlatformData.calculatePlatformFees(price * quantity))
+        }
+    }
+
+    private fun lockBuyerWalletAmount(buyer: User, totalAmount: Int) {
+        buyer.wallet.transferAmountFromFreeToLocked(totalAmount)
+    }
+
+    private fun addEsopCreditToInventory(buyer: User, quantity: Int) {
+        buyer.inventory.addNormalESOPToLocked(quantity)
     }
 
     fun updateTransactionsOfOrder(allOrdersOfUser: MutableList<Order>) {
@@ -126,5 +130,4 @@ class OrderService {
             individualOrder.filled = transAtSamePrice
         }
     }
-
 }

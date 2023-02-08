@@ -5,6 +5,7 @@ import com.tradingplatform.dto.OrderRequest
 import com.tradingplatform.model.Order
 import com.tradingplatform.model.User
 import com.tradingplatform.services.OrderService
+import com.tradingplatform.validations.OrderValidation
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.*
@@ -21,8 +22,6 @@ class OrderController {
     fun handleTypeNotPresent(exception: ConstraintViolationException): MutableHttpResponse<Map<String, List<String>>>? {
         return HttpResponse.badRequest(mapOf("errors" to exception.constraintViolations.map { it.message }))
     }
-
-
 
     @Get(value = "/{userName}/order")
     fun orderHistory(@QueryValue userName: String): Any? {
@@ -48,21 +47,11 @@ class OrderController {
 
 
     @Post(value = "/{userName}/order")
-    fun createOrder(@Body @Valid dto: OrderRequest , @QueryValue userName: String): Any {
-        return HttpResponse.ok("Hi")
-//        var response: MutableMap<String, List<String>>? = UserReqValidation.isUserExists(userName)
-//        if (response != null)
-//            return HttpResponse.badRequest(response)
-//
-//        response = OrderReqValidation.validateRequest(order)
-//        if (response != null)
-//            return HttpResponse.badRequest(response)
-//
-//        response = OrderReqValidation.isValueValid(quantity, price, esopType)
-//        if (response != null)
-//            return HttpResponse.badRequest(response)
-//
-//        return orderService.orderHandler(userName, type, quantity, price, esopType)
+    fun createOrder(@Body @Valid order: OrderRequest , @QueryValue userName: String): Any {
+        val response = OrderValidation.validateOrder(order)
+        if (response != null)
+            return HttpResponse.badRequest(response)
+        return orderService.placeOrder(userName, order)
     }
 
 
