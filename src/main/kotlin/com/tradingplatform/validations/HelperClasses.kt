@@ -7,9 +7,7 @@ import io.micronaut.json.tree.JsonObject
 const val maxLimitForWallet = 10000000
 const val maxLimitForInventory = 100000000
 
-class UserValidation {
 
-}
 
 
 class OrderValidation {
