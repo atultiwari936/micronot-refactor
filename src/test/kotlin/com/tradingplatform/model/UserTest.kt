@@ -3,7 +3,7 @@ package com.tradingplatform.model
 
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.validations.UserReqValidation
-import com.tradingplatform.validations.UserValidation
+
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
