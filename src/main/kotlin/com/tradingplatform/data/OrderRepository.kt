@@ -1,34 +1,18 @@
 package com.tradingplatform.data
 
+import com.tradingplatform.comparators.BuyOrdersComparator
+import com.tradingplatform.comparators.SellOrdersComparator
 import com.tradingplatform.model.Order
 import java.util.*
 import kotlin.collections.HashMap
 
 object OrderRepository {
 
-    private val buyOrders = PriorityQueue { order1: Order, order2: Order ->
-        when {
-            order1.price > order2.price -> -1
-            order1.price < order2.price -> 1
-            else -> {
-                (order1.timestamp - order2.timestamp).toInt()
-            }
-        }
-    }
+    private val buyOrders = PriorityQueue(BuyOrdersComparator)
 
-    private val sellOrders = PriorityQueue { order1: Order, order2: Order ->
-        when {
-            order1.id.second > order2.id.second -> -1
-            order1.id.second < order2.id.second -> 1
-            order1.price > order2.price -> 1
-            order1.price < order2.price -> -1
-            else -> {
-                (order1.timestamp - order2.timestamp).toInt()
-            }
-        }
-    }
+    private val sellOrders = PriorityQueue(SellOrdersComparator)
 
-    private val completedOrders = HashMap<Pair<Int, Int>, Order>()
+    private val completedOrders = HashMap<Int, Order>()
 
     fun checkIfBuyOrdersExists(): Boolean {
         return buyOrders.isNotEmpty()
@@ -62,7 +46,7 @@ object OrderRepository {
         return sellOrders
     }
 
-    fun getCompletedOrders(): HashMap<Pair<Int, Int>, Order> {
+    fun getCompletedOrders(): HashMap<Int, Order> {
         return completedOrders
     }
 
@@ -86,7 +70,7 @@ object OrderRepository {
         sellOrders.remove(order)
     }
 
-    fun getCompletedOrderById(orderID: Pair<Int, Int>): Order? {
+    fun getCompletedOrderById(orderID: Int): Order? {
         return completedOrders[orderID]
     }
 }
