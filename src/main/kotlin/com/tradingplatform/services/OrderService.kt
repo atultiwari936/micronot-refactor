@@ -50,7 +50,7 @@ class OrderService {
             errorList.addAll(OrderValidation.validateBuyOrder(order, user))
             updateWalletAndInventoryForBuyOrder(user, order)
 
-            newOrder = Order("BUY", quantity, price, user, esopNormal)
+            newOrder = Order("BUY", quantity, price, user, ESOPType.valueOf("NORMAL").sortOrder)
             user.orders.add(newOrder.id)
         } else if (type == "SELL") {
             updateWalletAndInventoryForSellOrder(user, order)
@@ -120,7 +120,7 @@ class OrderService {
 
             val transOfIndividualOrder = individualOrder.filled
 
-            val transAtSamePrice: ArrayList<PriceQtyPair> = arrayListOf()
+            val transAtSamePrice: ArrayList<PriceQuantityPair> = arrayListOf()
             val transIndexAtPrice: MutableMap<Int, Int> = mutableMapOf()
 
             for (transPriceAndQty in transOfIndividualOrder) {
