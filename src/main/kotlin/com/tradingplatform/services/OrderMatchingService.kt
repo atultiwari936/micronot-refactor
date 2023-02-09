@@ -63,16 +63,16 @@ class OrderMatchingService {
         buyOrder.filled.add(PriceQuantityPair(sellOrder.price, quantity))
         buyOrder.filledQuantity += quantity
 
+        sellOrder.filled.add(PriceQuantityPair(sellOrder.price, quantity))
+        sellOrder.filledQuantity += quantity
+
         buyer.wallet.removeAmountFromLocked(quantity * buyOrder.price)
 
         buyer.wallet.addAmountToFree(quantity * (buyOrder.price - sellOrder.price))
 
         buyer.inventory.addNormalESOPToFree(quantity)
-
         buyer.inventory.removeESOPFromCredit(quantity)
 
-        sellOrder.filled.add(PriceQuantityPair(sellOrder.price, quantity))
-        sellOrder.filledQuantity += quantity
 
         if (sellOrder.id.second == 1) {
             seller.wallet.addAmountToFree(quantity * sellOrder.price)

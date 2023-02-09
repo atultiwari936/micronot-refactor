@@ -9,7 +9,7 @@ class WalletReqValidation {
     companion object {
         fun checkWalletValidations(amount: JsonNode?, user: User): ArrayList<String> {
             val errorList = arrayListOf<String>()
-            println("amount value is : $amount")
+
             if (amount == null) {
                 errorList.add("Enter the amount field")
                 return errorList

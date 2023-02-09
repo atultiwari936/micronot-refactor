@@ -1,11 +1,16 @@
 package com.tradingplatform.services
 
 import com.tradingplatform.data.OrderRepository
-import com.tradingplatform.data.UserRepo
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
+import com.tradingplatform.dto.OrderResponse
+import com.tradingplatform.dto.SellOrderResponse
+import com.tradingplatform.exceptions.InvalidOrderException
+import com.tradingplatform.exceptions.UserNotFoundException
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.OrderValidation
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.MutableHttpResponse
 
 class OrderService {
 
@@ -39,14 +44,16 @@ class OrderService {
         return completedOrdersOfUser
     }
 
-    fun placeOrder(userName: String, order: OrderRequest): Any {
+    fun placeOrder(userName: String, order: OrderRequest): MutableHttpResponse<OrderResponse>? {
+        if (UserRepository.getUser(userName) == null) {
+            throw UserNotFoundException(listOf("User doesn't exist"))
+        }
         val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, Any>()
-        val user = UserRepo.getUser(userName)!!
+        val user = UserRepository.getUser(userName)!!
         val quantity = order.quantity!!
         val price = order.price!!
         val type = order.type!!
-        var newOrder: Order? = null
+        var newOrder: Order?
 
         if (type == "BUY") {
             errorList.addAll(OrderValidation.validateBuyOrder(order, user))
@@ -60,23 +67,31 @@ class OrderService {
         } else if (type == "SELL") {
             updateWalletAndInventoryForSellOrder(user, order)
 
+
             newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).sortOrder)
             user.orders.add(newOrder.id)
 
             orderMatchingService.matchBuyOrder(newOrder)
         }
 
-        response["error"] = errorList
         if (errorList.isNotEmpty()) {
-            return HttpResponse.badRequest(response)
+            throw InvalidOrderException(errorList)
         }
 
-        response["orderId"] = newOrder!!.id.first
-        response["quantity"] = quantity
-        response["type"] = type
-        response["price"] = price
-
-        return HttpResponse.ok(response)
+        val response: OrderResponse =
+            if (type == "SELL") SellOrderResponse(
+                type = type,
+                price = price,
+                quantity = quantity,
+                esopType = order.esopType!!
+            ) else OrderResponse(
+                type = type,
+                price = price,
+                quantity = quantity
+            )
+        return HttpResponse.ok(
+            response
+        )
     }
 
     private fun updateWalletAndInventoryForBuyOrder(user: User, order: OrderRequest) {
@@ -85,9 +100,10 @@ class OrderService {
     }
 
     private fun updateWalletAndInventoryForSellOrder(user: User, order: OrderRequest) {
+        val errorList = arrayListOf<String>()
+
         val quantity = order.quantity!!
         val price = order.price!!
-        val errorList = arrayListOf<String>()
 
         if (order.esopType == "PERFORMANCE") {
             OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity)
@@ -111,6 +127,10 @@ class OrderService {
                 user.inventory.removeNormalESOPFromFree(quantity)
                 user.inventory.addESOPToCredit(price * quantity - PlatformData.calculatePlatformFees(price * quantity))
             }
+        }
+
+        if (errorList.isNotEmpty()) {
+            throw InvalidOrderException(errorList)
         }
     }
 
