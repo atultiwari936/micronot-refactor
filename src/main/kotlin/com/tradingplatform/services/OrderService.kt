@@ -3,6 +3,8 @@ package com.tradingplatform.services
 import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
+import com.tradingplatform.exceptions.InvalidOrderException
+import com.tradingplatform.exceptions.UserNotFoundException
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.OrderValidation
 import io.micronaut.http.HttpResponse
@@ -40,8 +42,10 @@ class OrderService {
     }
 
     fun placeOrder(userName: String, order: OrderRequest): Any {
+        if(UserRepository.getUser(userName) == null){
+            throw UserNotFoundException(listOf("User doesn't exist"))
+        }
         val errorList = arrayListOf<String>()
-        val response = mutableMapOf<String, Any>()
         val user = UserRepository.getUser(userName)!!
         val quantity = order.quantity!!
         val price = order.price!!
@@ -66,17 +70,11 @@ class OrderService {
             orderMatchingService.matchBuyOrder(newOrder)
         }
 
-        response["error"] = errorList
         if (errorList.isNotEmpty()) {
-            return HttpResponse.badRequest(response)
+            throw InvalidOrderException(errorList)
         }
 
-        response["orderId"] = newOrder!!.id.first
-        response["quantity"] = quantity
-        response["type"] = type
-        response["price"] = price
-
-        return HttpResponse.ok(response)
+        return HttpResponse.ok(mapOf("orderId" to newOrder!!.id.first, "quantity" to quantity, "type" to type, "price" to price))
     }
 
     private fun updateWalletAndInventoryForBuyOrder(user: User, order: OrderRequest) {
@@ -85,9 +83,10 @@ class OrderService {
     }
 
     private fun updateWalletAndInventoryForSellOrder(user: User, order: OrderRequest) {
+        val errorList = arrayListOf<String>()
+
         val quantity = order.quantity!!
         val price = order.price!!
-        val errorList = arrayListOf<String>()
 
         if (order.esopType == "PERFORMANCE") {
             OrderValidation().isWalletAmountWithinLimit(errorList, user, price * quantity)
@@ -111,6 +110,10 @@ class OrderService {
                 user.inventory.removeNormalESOPFromFree(quantity)
                 user.inventory.addESOPToCredit(price * quantity - PlatformData.calculatePlatformFees(price * quantity))
             }
+        }
+
+        if(errorList.isNotEmpty()){
+            throw InvalidOrderException(errorList)
         }
     }
 

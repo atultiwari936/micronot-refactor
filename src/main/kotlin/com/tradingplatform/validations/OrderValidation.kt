@@ -1,6 +1,7 @@
 package com.tradingplatform.validations
 
 import com.tradingplatform.dto.OrderRequest
+import com.tradingplatform.exceptions.InvalidOrderException
 import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
 import com.tradingplatform.model.Wallet
@@ -9,19 +10,15 @@ import com.tradingplatform.model.Wallet
 class OrderValidation {
     companion object {
 
-        fun validateOrder(order: OrderRequest): MutableMap<String, List<String>>? {
-            val response = mutableMapOf<String, List<String>>()
+        fun validateOrder(order: OrderRequest) {
             val errorList = arrayListOf<String>()
 
             isQuantityWithinLimit(order.quantity!!)?.let { errorList.add(it) }
             isPriceWithinLimit(order.price!!)?.let { errorList.add(it) }
             isEsopTypeValid(order.esopType!!)?.let { errorList.add(it) }
-
             if (errorList.isNotEmpty()) {
-                response["error"] = errorList
-                return response
+                throw InvalidOrderException(errorList)
             }
-            return null
         }
 
         private fun isQuantityWithinLimit(quantity: Int): String? {
@@ -68,7 +65,6 @@ class OrderValidation {
             list.add("Enter a positive amount")
             return false
         } else if (amount > Wallet.MAX_WALLET_LIMIT) {
-
             list.add("Enter amount between 0 to ${Wallet.MAX_WALLET_LIMIT}")
             return false
         }
