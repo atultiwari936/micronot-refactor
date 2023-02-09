@@ -8,6 +8,7 @@ import io.micronaut.http.HttpResponse
 
 class OrderService {
 
+    private val orderMatchingService: OrderMatchingService = OrderMatchingService()
     fun getAllPendingOrdersOfUser(userName: String): MutableList<Order> {
         val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
         for (order in SellOrders) {
@@ -52,11 +53,16 @@ class OrderService {
 
             newOrder = Order("BUY", quantity, price, user, ESOPType.valueOf("NORMAL").sortOrder)
             user.orders.add(newOrder.id)
+
+            orderMatchingService.matchSellOrder(newOrder)
+
         } else if (type == "SELL") {
             updateWalletAndInventoryForSellOrder(user, order)
 
             newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).sortOrder)
             user.orders.add(newOrder.id)
+
+            orderMatchingService.matchBuyOrder(newOrder)
         }
 
         response["error"] = errorList
