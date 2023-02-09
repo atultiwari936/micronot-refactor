@@ -30,7 +30,7 @@ class OrderService {
         return pendingOrdersOfUser
     }
 
-    fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Pair<Int, Int>>): MutableList<Order> {
+    fun getAllCompletedOrdersOfUser(userOrderIds: ArrayList<Int>): MutableList<Order> {
 
         val completedOrdersOfUser: MutableList<Order> = mutableListOf()
         for (orderId in userOrderIds) {
@@ -59,8 +59,8 @@ class OrderService {
             errorList.addAll(OrderValidation.validateBuyOrder(order, user))
             updateWalletAndInventoryForBuyOrder(user, order)
 
-            newOrder = Order("BUY", quantity, price, user, ESOPType.valueOf("NORMAL").sortOrder)
-            user.orders.add(newOrder.id)
+            newOrder = Order("BUY", quantity, price, user, ESOPType.NORMAL.value)
+            user.orderIds.add(newOrder.id)
 
             orderMatchingService.matchSellOrder(newOrder)
 
@@ -68,8 +68,8 @@ class OrderService {
             updateWalletAndInventoryForSellOrder(user, order)
 
 
-            newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).sortOrder)
-            user.orders.add(newOrder.id)
+            newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).value)
+            user.orderIds.add(newOrder.id)
 
             orderMatchingService.matchBuyOrder(newOrder)
         }
