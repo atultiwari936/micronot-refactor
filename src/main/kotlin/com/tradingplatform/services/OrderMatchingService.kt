@@ -10,122 +10,80 @@ import kotlin.math.min
 
 class OrderMatchingService {
 
-    fun matchSellOrder(order: Order) {
-        val user = order.user
+    fun matchSellOrder(buyOrder: Order) {
         while (OrderRepository.checkIfSellOrdersExists()) {
             val potentialSellOrder = OrderRepository.getSellOrders().poll()
-            if (potentialSellOrder.price > order.price || order.filledQuantity == order.quantity) {
-                OrderRepository.addSellOrder(potentialSellOrder)
-                OrderRepository.addSellOrder(potentialSellOrder)
+            if (potentialSellOrder.price > buyOrder.price || buyOrder.filledQuantity == buyOrder.quantity) {
+                OrderRepository.addOrder(potentialSellOrder)
                 break
             } else {
-                val potentialSellOrderQty =
-                    min(
-                        order.quantity - order.filledQuantity,
-                        potentialSellOrder.quantity - potentialSellOrder.filledQuantity
-                    )
-
-                order.filled.add(PriceQuantityPair(potentialSellOrder.price, potentialSellOrderQty))
-                order.filledQuantity += potentialSellOrderQty
-
-                user.wallet.removeAmountFromLocked(potentialSellOrderQty * order.price)
-                user.wallet.addAmountToFree(potentialSellOrderQty * (order.price - potentialSellOrder.price))
-                user.inventory.addNormalESOPToFree(potentialSellOrderQty)
-
-                user.inventory.removeESOPFromCredit(potentialSellOrderQty)
-
-                potentialSellOrder.filled.add(PriceQuantityPair(potentialSellOrder.price, potentialSellOrderQty))
-                potentialSellOrder.filledQuantity += potentialSellOrderQty
-
-                if (potentialSellOrder.id.second == 1) {
-                    potentialSellOrder.user.wallet.addAmountToFree(potentialSellOrderQty * potentialSellOrder.price)
-                    potentialSellOrder.user.inventory.removePerformanceESOPFromLocked(potentialSellOrderQty)
-                } else {
-
-                    val taxAmount: Int = ceil(potentialSellOrderQty * potentialSellOrder.price * 0.02).toInt()
-
-                    potentialSellOrder.user.wallet.addAmountToFree(potentialSellOrderQty * potentialSellOrder.price - taxAmount)
-                    PlatformData.feesEarned += BigInteger(taxAmount.toString())
-                    potentialSellOrder.user.inventory.removeNormalESOPFromLocked(potentialSellOrderQty)
-                }
-
-                if (potentialSellOrder.filledQuantity < potentialSellOrder.quantity && potentialSellOrder.filledQuantity > 0) potentialSellOrder.status =
-                    "partially filled"
-                OrderRepository.addSellOrder(potentialSellOrder)
-                if (potentialSellOrder.filledQuantity == potentialSellOrder.quantity) {
-                    potentialSellOrder.status = "filled"
-                    OrderRepository.removeSellOrder(potentialSellOrder)
-
-
-                    OrderRepository.addCompletedOrder(potentialSellOrder)
-                }
+                match(buyOrder, potentialSellOrder)
             }
         }
-        if (order.filledQuantity == order.quantity) {
-            order.status = "filled"
-            OrderRepository.addCompletedOrder(order)
-        } else {
-            if (order.filledQuantity in 1 until order.quantity) order.status = "partially filled"
-            OrderRepository.addBuyOrder(order)
-        }
+        updateFilledQuantityAndStatusForOrder(buyOrder)
     }
 
-    fun matchBuyOrder(order: Order) {
-        val user = order.user
+    fun matchBuyOrder(sellOrder: Order) {
         while (OrderRepository.checkIfBuyOrdersExists()) {
             val potentialBuyOrder = OrderRepository.getBuyOrders().poll()
-            if (potentialBuyOrder.price < order.price || order.filledQuantity == order.quantity) {
+            if (potentialBuyOrder.price < sellOrder.price || sellOrder.filledQuantity == sellOrder.quantity) {
                 OrderRepository.addBuyOrder(potentialBuyOrder)
                 break
             } else {
-                val potentialBuyOrderQty = min(
-                    order.quantity - order.filledQuantity,
-                    potentialBuyOrder.quantity - potentialBuyOrder.filledQuantity
-                )
-
-                order.filled.add(PriceQuantityPair(order.price, potentialBuyOrderQty))
-                order.filledQuantity += potentialBuyOrderQty
-
-
-                if (order.id.second == 1) {
-                    user.inventory.removePerformanceESOPFromLocked(potentialBuyOrderQty)
-                    user.wallet.addAmountToFree(potentialBuyOrderQty * order.price)
-                    user.wallet.removeAmountFromCredit(potentialBuyOrderQty * order.price)
-                } else {
-
-                    val taxAmount: Int = ceil(potentialBuyOrderQty * order.price * 0.02).toInt()
-
-                    user.wallet.addAmountToFree(potentialBuyOrderQty * order.price - taxAmount)
-                    user.wallet.removeAmountFromCredit(potentialBuyOrderQty * order.price - taxAmount)
-                    PlatformData.feesEarned += BigInteger(taxAmount.toString())
-                    user.inventory.removeNormalESOPFromLocked(potentialBuyOrderQty)
-
-                }
-
-
-                potentialBuyOrder.filled.add(PriceQuantityPair(order.price, potentialBuyOrderQty))
-                potentialBuyOrder.filledQuantity += potentialBuyOrderQty
-                potentialBuyOrder.user.wallet.removeAmountFromLocked(potentialBuyOrderQty * potentialBuyOrder.price)
-
-                potentialBuyOrder.user.wallet.addAmountToFree(potentialBuyOrderQty * (potentialBuyOrder.price - order.price))
-                potentialBuyOrder.user.inventory.addNormalESOPToFree(potentialBuyOrderQty)
-                if (potentialBuyOrder.filledQuantity < potentialBuyOrder.quantity && potentialBuyOrder.filledQuantity > 0) potentialBuyOrder.status =
-                    "partially filled"
-                OrderRepository.addBuyOrder(potentialBuyOrder)
-                if (potentialBuyOrder.filledQuantity == potentialBuyOrder.quantity) {
-                    potentialBuyOrder.status = "filled"
-                    OrderRepository.removeBuyOrder(potentialBuyOrder)
-                    OrderRepository.addCompletedOrder(potentialBuyOrder)
-                }
+                match(potentialBuyOrder, sellOrder)
             }
         }
+        updateFilledQuantityAndStatusForOrder(sellOrder)
+    }
+
+    private fun updateFilledQuantityAndStatusForOrder(order: Order) {
         if (order.filledQuantity == order.quantity) {
             order.status = "filled"
             OrderRepository.addCompletedOrder(order)
-        } else {
-            if (order.filledQuantity in 1 until order.quantity) order.status = "partially filled"
-            OrderRepository.addSellOrder(order)
+            OrderRepository.removeOrder(order)
+            return
+        } else if (order.filledQuantity < order.quantity && order.filledQuantity > 0) {
+            order.status = "partially filled"
         }
+        OrderRepository.addOrder(order)
     }
 
+    private fun match(buyOrder: Order, sellOrder: Order) {
+        val buyer = buyOrder.user
+        val seller = sellOrder.user
+        val quantity = min(
+            buyOrder.quantity - buyOrder.filledQuantity,
+            sellOrder.quantity - sellOrder.filledQuantity
+        )
+
+        if (quantity == 0) {
+            return
+        }
+
+        buyOrder.filled.add(PriceQuantityPair(sellOrder.price, quantity))
+        buyOrder.filledQuantity += quantity
+
+        buyer.wallet.removeAmountFromLocked(quantity * buyOrder.price)
+
+        buyer.wallet.addAmountToFree(quantity * (buyOrder.price - sellOrder.price))
+
+        buyer.inventory.addNormalESOPToFree(quantity)
+
+        buyer.inventory.removeESOPFromCredit(quantity)
+
+        sellOrder.filled.add(PriceQuantityPair(sellOrder.price, quantity))
+        sellOrder.filledQuantity += quantity
+
+        if (sellOrder.id.second == 1) {
+            seller.wallet.addAmountToFree(quantity * sellOrder.price)
+            seller.inventory.removePerformanceESOPFromLocked(quantity)
+        } else {
+            val taxAmount: Int = ceil(quantity * sellOrder.price * 0.02).toInt()
+            seller.wallet.addAmountToFree(quantity * sellOrder.price - taxAmount)
+            PlatformData.feesEarned += BigInteger(taxAmount.toString())
+            seller.inventory.removeNormalESOPFromLocked(quantity)
+        }
+        updateFilledQuantityAndStatusForOrder(buyOrder)
+        updateFilledQuantityAndStatusForOrder(sellOrder)
+    }
 }
