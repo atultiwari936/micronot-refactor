@@ -31,8 +31,8 @@ class OrderControllerTest {
             .then()
             .statusCode(400).and()
             .body(
-                "error",
-                Matchers.contains(
+                "errors",
+                Matchers.containsInAnyOrder(
                     "Enter the quantity field", "Enter the type field", "Enter the price field"
                 )
             )
@@ -49,7 +49,7 @@ class OrderControllerTest {
             .then()
             .statusCode(400).and()
             .body(
-                "error", Matchers.contains(
+                "errors", Matchers.containsInAnyOrder(
                     "Enter the type field",
                     "Enter the price field"
                 )
@@ -74,7 +74,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Enter a valid quantity"))
+            .body("errors", Matchers.containsInAnyOrder("Enter a valid quantity"))
     }
 
     @Test
@@ -95,7 +95,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Order Type is not valid"))
+            .body("errors", Matchers.containsInAnyOrder("Order type can only be BUY or SELL"))
     }
 
     @Test
@@ -114,7 +114,7 @@ class OrderControllerTest {
             .post("/user/atul/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("User does not exists"))
+            .body("errors", Matchers.containsInAnyOrder("User doesn't exist"))
 
     }
 
@@ -167,7 +167,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Insufficient funds in wallet"))
+            .body("errors", Matchers.containsInAnyOrder("Insufficient funds in wallet"))
     }
 
 
@@ -191,7 +191,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Insufficient Normal ESOPs in inventory"))
+            .body("errors", Matchers.containsInAnyOrder("Insufficient Normal ESOPs in inventory"))
     }
 
 
@@ -216,7 +216,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Insufficient Performance ESOPs in inventory"))
+            .body("errors", Matchers.containsInAnyOrder("Insufficient Performance ESOPs in inventory"))
     }
 
 
@@ -238,7 +238,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Enter a valid price"))
+            .body("errors", Matchers.containsInAnyOrder("Enter price between 0 to 10000000"))
 
     }
 
@@ -260,7 +260,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and ${PlatformData.MAX_INVENTORY_LIMIT}"))
+            .body("errors", Matchers.containsInAnyOrder("Quantity is not valid. Range between 1 and ${PlatformData.MAX_INVENTORY_LIMIT}"))
     }
 
     @Test
@@ -281,8 +281,8 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and().body(
-                "error",
-                Matchers.contains("Order Type is not valid")
+                "errors",
+                Matchers.containsInAnyOrder("Order type can only be BUY or SELL")
             )
     }
 }
