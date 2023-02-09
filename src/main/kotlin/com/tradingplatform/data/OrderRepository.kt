@@ -34,6 +34,22 @@ object OrderRepository {
         return buyOrders.isNotEmpty()
     }
 
+    fun addOrder(order: Order) {
+        when (order.type) {
+            "SELL" -> addSellOrder(order)
+            "BUY" -> addBuyOrder(order)
+            else -> throw Exception("Invalid order type")
+        }
+    }
+
+    fun removeOrder(order: Order) {
+        when (order.type) {
+            "SELL" -> removeSellOrder(order)
+            "BUY" -> removeBuyOrder(order)
+            else -> throw Exception("Invalid order type")
+        }
+    }
+
     fun checkIfSellOrdersExists(): Boolean {
         return sellOrders.isNotEmpty()
     }
@@ -51,16 +67,10 @@ object OrderRepository {
     }
 
     fun addBuyOrder(order: Order) {
-        if (order.type != "BUY") {
-            throw Exception("Order type doesn't match")
-        }
         buyOrders.add(order)
     }
 
     fun addSellOrder(order: Order) {
-        if (order.type != "SELL") {
-            throw Exception("Order type doesn't match")
-        }
         sellOrders.add(order)
     }
 
