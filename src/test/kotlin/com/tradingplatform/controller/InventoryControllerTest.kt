@@ -1,6 +1,6 @@
 package com.tradingplatform.controller
 
-import com.tradingplatform.data.UserRepo
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.model.PlatformData
 import com.tradingplatform.model.User
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -14,7 +14,7 @@ class InventoryControllerTest {
     @Test
     fun `return success on valid quantity and esop type`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -32,7 +32,7 @@ class InventoryControllerTest {
     @Test
     fun `return proper error message on missing quantity field`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -49,7 +49,7 @@ class InventoryControllerTest {
     @Test
     fun `return success for valid quantity`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -66,7 +66,7 @@ class InventoryControllerTest {
     @Test
     fun `return proper error message on missing quantity and type field`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("{}")
@@ -78,7 +78,7 @@ class InventoryControllerTest {
     @Test
     fun `return proper error message when quantity entered exceeds maxLimit`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -96,7 +96,7 @@ class InventoryControllerTest {
     @Test
     fun `return proper error message when quantity entered is negative`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -114,7 +114,7 @@ class InventoryControllerTest {
     @Test
     fun `return proper error message when type entered is invalid`(spec: RequestSpecification) {
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""
@@ -150,7 +150,7 @@ class InventoryControllerTest {
     fun `proper error quantity entered is a string`(spec: RequestSpecification) {
 
         val user = User("", "", "", "tat@gmail.com", "pkcs")
-        UserRepo.addUser(user)
+        UserRepository.addUser(user)
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""

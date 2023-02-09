@@ -1,7 +1,7 @@
 package com.tradingplatform.services
 
 import com.tradingplatform.data.OrderRepository
-import com.tradingplatform.data.UserRepo
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
 
 import com.tradingplatform.model.User
@@ -16,7 +16,7 @@ class OrderMatchingServiceTest {
         OrderRepository.getBuyOrders().clear()
         OrderRepository.getSellOrders().clear()
         OrderRepository.getCompletedOrders().clear()
-        UserRepo.users.clear()
+        UserRepository.users.clear()
     }
 
 
@@ -24,7 +24,7 @@ class OrderMatchingServiceTest {
     fun `Check a single buy order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val orderService = OrderService()
         val order = OrderRequest("BUY", 1, 20)
@@ -40,11 +40,11 @@ class OrderMatchingServiceTest {
     fun `Check buy order satisfied partially by sell order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
 
         val buyOrder = OrderRequest("BUY", 5, 20)
@@ -73,11 +73,11 @@ class OrderMatchingServiceTest {
     fun `Check buy order satisfied partially by performance esops of sell order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopPerformance.free = 10
 
         val performanceSellOrder = OrderRequest("SELL", 2, 20, "PERFORMANCE")
@@ -106,11 +106,11 @@ class OrderMatchingServiceTest {
     fun `Check sell order satisfied partially by buy order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.inventory.esopNormal.free = 11
 
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.wallet.addAmountToFree(100)
 
         val sellOrder = OrderRequest("SELL", 10, 20)
@@ -138,11 +138,11 @@ class OrderMatchingServiceTest {
     fun `Check sell order of performance esops satisfied partially by buy order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
 
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopPerformance.free = 10
 
         val buyOrder = OrderRequest("BUY", 5, 20)
@@ -171,7 +171,7 @@ class OrderMatchingServiceTest {
     fun `Check a single sell order of performance esops`() {
         //Arrange
         val user1 = User("", "", "", "", "kcsp")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.inventory.esopNormal.free = 40
         user1.inventory.esopPerformance.free = 40
         user1.wallet.addAmountToFree(100)
@@ -194,10 +194,10 @@ class OrderMatchingServiceTest {
     fun `Check buy order after a sell order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user2.userName, OrderRequest("SELL", 2, 20))
@@ -223,10 +223,10 @@ class OrderMatchingServiceTest {
     fun `Check sell order after a buy order`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("BUY", 2, 20))
@@ -251,10 +251,10 @@ class OrderMatchingServiceTest {
     fun `Check match of sell order with 2 buy order , where high price buy order is placed after low price buy`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("BUY", 2, 20))
@@ -280,10 +280,10 @@ class OrderMatchingServiceTest {
     fun `Check match of sell order with 2 buy order , where low price buy order is placed after high price buy`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("BUY", 2, 30))
@@ -310,10 +310,10 @@ class OrderMatchingServiceTest {
     fun `Check match of sell order with 2 buy order , both buy at same price`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.wallet.addAmountToFree(100)
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.inventory.esopNormal.free = 10
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("BUY", 2, 20))
@@ -341,10 +341,10 @@ class OrderMatchingServiceTest {
     fun `Check match of buy order with 2 sell order , first sell at low price than second sell price`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.inventory.esopNormal.free = 10
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("SELL", 2, 20))
@@ -372,10 +372,10 @@ class OrderMatchingServiceTest {
     fun `Check match of buy order with 2 sell order , first sell at higher price than second sell price`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.inventory.esopNormal.free = 10
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("SELL", 2, 30))
@@ -400,10 +400,10 @@ class OrderMatchingServiceTest {
     fun `Check match of buy order with 2 sell order , both sell order at same price`() {
         //Arrange
         val user1 = User("", "", "", "", "atul_1")
-        UserRepo.users[user1.userName] = user1
+        UserRepository.users[user1.userName] = user1
         user1.inventory.esopNormal.free = 10
         val user2 = User("", "", "", "", "atul_2")
-        UserRepo.users[user2.userName] = user2
+        UserRepository.users[user2.userName] = user2
         user2.wallet.addAmountToFree(100)
         val objectOfOrderController = OrderService()
         objectOfOrderController.placeOrder(user1.userName, OrderRequest("SELL", 2, 20))

@@ -1,7 +1,7 @@
 package com.tradingplatform.services
 
 import com.tradingplatform.data.OrderRepository
-import com.tradingplatform.data.UserRepo
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.OrderValidation
@@ -42,7 +42,7 @@ class OrderService {
     fun placeOrder(userName: String, order: OrderRequest): Any {
         val errorList = arrayListOf<String>()
         val response = mutableMapOf<String, Any>()
-        val user = UserRepo.getUser(userName)!!
+        val user = UserRepository.getUser(userName)!!
         val quantity = order.quantity!!
         val price = order.price!!
         val type = order.type!!

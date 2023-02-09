@@ -1,7 +1,7 @@
 package com.tradingplatform.controller
 
 import com.tradingplatform.data.OrderRepository
-import com.tradingplatform.data.UserRepo
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.model.*
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
@@ -17,13 +17,13 @@ class OrderControllerTest {
         OrderRepository.getCompletedOrders().clear()
         OrderRepository.getBuyOrders().clear()
         OrderRepository.getSellOrders().clear()
-        UserRepo.users.clear()
+        UserRepository.users.clear()
     }
 
     @Test
     fun `check if order request has missing quantity,type and price fields`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("{}")
@@ -41,7 +41,7 @@ class OrderControllerTest {
     @Test
     fun `check if order request has missing type and price fields`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body("""{"quantity":1}""")
@@ -59,7 +59,7 @@ class OrderControllerTest {
     @Test
     fun `check if order request quantity is integer`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -80,7 +80,7 @@ class OrderControllerTest {
     @Test
     fun `check if order request type is string`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -121,7 +121,7 @@ class OrderControllerTest {
     @Test
     fun `Check if successful order is placed if order request is valid`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         user.wallet.addAmountToFree(100)
 
         spec.`when`()
@@ -150,7 +150,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if free wallet balance is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         user.wallet.addAmountToFree(10)
 
         spec.`when`()
@@ -174,7 +174,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
 
 
         spec.`when`()
@@ -198,7 +198,7 @@ class OrderControllerTest {
     @Test
     fun `Check if error is returned if performance inventory is insufficent`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
 
 
         spec.`when`()
@@ -223,7 +223,7 @@ class OrderControllerTest {
     @Test
     fun `check if error message is added if price exceed specified limit`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -245,7 +245,7 @@ class OrderControllerTest {
     @Test
     fun `check if error message is added if quantity exceed specified limit`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
@@ -266,7 +266,7 @@ class OrderControllerTest {
     @Test
     fun `check if error message is returned when order type is invalid`(spec: RequestSpecification) {
         val user = User("Atul", "Tiwri", "+91999999999", "atul@sahaj.ai", "atul")
-        UserRepo.users[user.userName] = user
+        UserRepository.users[user.userName] = user
         spec.`when`()
             .header("Content-Type", "application/json")
             .body(
