@@ -1,10 +1,9 @@
 package com.tradingplatform
 
+import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.dto.OrderRequest
-import com.tradingplatform.model.BuyOrders
-import com.tradingplatform.model.CompletedOrders
-import com.tradingplatform.model.SellOrders
+
 import com.tradingplatform.model.User
 import com.tradingplatform.services.OrderService
 import org.junit.jupiter.api.Assertions
@@ -15,9 +14,9 @@ class OrderMatchingTest {
 
     @BeforeEach
     fun `Remove all the Users and Orders`() {
-        CompletedOrders.clear()
-        BuyOrders.clear()
-        SellOrders.clear()
+        OrderRepository.getBuyOrders().clear()
+        OrderRepository.getSellOrders().clear()
+        OrderRepository.getCompletedOrders().clear()
         UserRepo.users.clear()
     }
 

@@ -1,6 +1,9 @@
 package com.tradingplatform.services
 
-import com.tradingplatform.model.*
+import com.tradingplatform.data.OrderRepository
+import com.tradingplatform.model.Order
+import com.tradingplatform.model.PlatformData
+import com.tradingplatform.model.PriceQuantityPair
 import java.math.BigInteger
 import kotlin.math.ceil
 import kotlin.math.min
@@ -9,10 +12,11 @@ class OrderMatchingService {
 
     fun matchSellOrder(order: Order) {
         val user = order.user
-        while (SellOrders.isNotEmpty()) {
-            val potentialSellOrder = SellOrders.poll()
+        while (OrderRepository.checkIfSellOrdersExists()) {
+            val potentialSellOrder = OrderRepository.getSellOrders().poll()
             if (potentialSellOrder.price > order.price || order.filledQuantity == order.quantity) {
-                SellOrders.add(potentialSellOrder)
+                OrderRepository.addSellOrder(potentialSellOrder)
+                OrderRepository.addSellOrder(potentialSellOrder)
                 break
             } else {
                 val potentialSellOrderQty =
@@ -47,31 +51,31 @@ class OrderMatchingService {
 
                 if (potentialSellOrder.filledQuantity < potentialSellOrder.quantity && potentialSellOrder.filledQuantity > 0) potentialSellOrder.status =
                     "partially filled"
-                SellOrders.add(potentialSellOrder)
+                OrderRepository.addSellOrder(potentialSellOrder)
                 if (potentialSellOrder.filledQuantity == potentialSellOrder.quantity) {
                     potentialSellOrder.status = "filled"
-                    SellOrders.remove(potentialSellOrder)
+                    OrderRepository.removeSellOrder(potentialSellOrder)
 
 
-                    CompletedOrders[potentialSellOrder.id] = potentialSellOrder
+                    OrderRepository.addCompletedOrder(potentialSellOrder)
                 }
             }
         }
         if (order.filledQuantity == order.quantity) {
             order.status = "filled"
-            CompletedOrders[order.id] = order
+            OrderRepository.addCompletedOrder(order)
         } else {
             if (order.filledQuantity in 1 until order.quantity) order.status = "partially filled"
-            BuyOrders.add(order)
+            OrderRepository.addBuyerOrder(order)
         }
     }
 
     fun matchBuyOrder(order: Order) {
         val user = order.user
-        while (BuyOrders.isNotEmpty()) {
-            val potentialBuyOrder = BuyOrders.poll()
+        while (OrderRepository.checkIfBuyOrdersExists()) {
+            val potentialBuyOrder = OrderRepository.getBuyOrders().poll()
             if (potentialBuyOrder.price < order.price || order.filledQuantity == order.quantity) {
-                BuyOrders.add(potentialBuyOrder)
+                OrderRepository.addBuyerOrder(potentialBuyOrder)
                 break
             } else {
                 val potentialBuyOrderQty = min(
@@ -107,20 +111,20 @@ class OrderMatchingService {
                 potentialBuyOrder.user.inventory.addNormalESOPToFree(potentialBuyOrderQty)
                 if (potentialBuyOrder.filledQuantity < potentialBuyOrder.quantity && potentialBuyOrder.filledQuantity > 0) potentialBuyOrder.status =
                     "partially filled"
-                BuyOrders.add(potentialBuyOrder)
+                OrderRepository.addBuyerOrder(potentialBuyOrder)
                 if (potentialBuyOrder.filledQuantity == potentialBuyOrder.quantity) {
                     potentialBuyOrder.status = "filled"
-                    BuyOrders.remove(potentialBuyOrder)
-                    CompletedOrders[potentialBuyOrder.id] = potentialBuyOrder
+                    OrderRepository.removeBuyOrder(potentialBuyOrder)
+                    OrderRepository.addCompletedOrder(potentialBuyOrder)
                 }
             }
         }
         if (order.filledQuantity == order.quantity) {
             order.status = "filled"
-            CompletedOrders[order.id] = order
+            OrderRepository.addCompletedOrder(order)
         } else {
             if (order.filledQuantity in 1 until order.quantity) order.status = "partially filled"
-            SellOrders.add(order)
+            OrderRepository.addSellOrder(order)
         }
     }
 
