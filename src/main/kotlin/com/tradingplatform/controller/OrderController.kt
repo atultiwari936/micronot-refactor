@@ -7,6 +7,7 @@ import com.tradingplatform.exceptions.InvalidOrderException
 import com.tradingplatform.exceptions.UserNotFoundException
 import com.tradingplatform.model.Order
 import com.tradingplatform.model.User
+import com.tradingplatform.services.OrderHistoryService
 import com.tradingplatform.services.OrderService
 import com.tradingplatform.validations.OrderValidation
 import io.micronaut.core.convert.exceptions.ConversionErrorException
@@ -43,21 +44,13 @@ class OrderController {
     }
 
     @Get(value = "/{userName}/order")
-    fun orderHistory(@QueryValue userName: String): Any? {
+    fun orderHistory(@QueryValue userName: String): MutableHttpResponse<MutableList<Order>>? {
         val user = UserRepository.getUser(userName)
         if (user !is User) {
             throw UserNotFoundException(listOf("User doesn't exist"))
         }
 
-        val allOrdersOfUser: MutableList<Order> = mutableListOf()
-        val userOrderIds = user.orders
-
-        allOrdersOfUser.addAll(orderService.getAllCompletedOrdersOfUser(userOrderIds))
-        allOrdersOfUser.addAll(orderService.getAllPendingOrdersOfUser(userName))
-
-        orderService.updateTransactionsOfOrder(allOrdersOfUser)
-        return HttpResponse.ok(allOrdersOfUser)
-
+        return HttpResponse.ok(OrderHistoryService.getAllOrders(user))
     }
 
     @Post(value = "/{userName}/order")
