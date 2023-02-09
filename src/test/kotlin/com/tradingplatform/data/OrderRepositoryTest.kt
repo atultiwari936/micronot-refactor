@@ -63,7 +63,7 @@ class OrderRepositoryTest {
     @Test
     fun `it should add sell order to sellOrder queue`() {
         val sellOrder =
-            Order(type = "SELL", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.sortOrder)
+            Order(type = "SELL", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.value)
         val expectedSellOrdersSize = 1
 
         OrderRepository.addSellOrder(sellOrder)
@@ -75,7 +75,7 @@ class OrderRepositoryTest {
     @Test
     fun `it should raise exception if order other than BUY or SELL are added`() {
         val order =
-            Order(type = "PURCHASE", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.sortOrder)
+            Order(type = "PURCHASE", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.value)
 
         assertThrows<Exception> { OrderRepository.addOrder(order) }
     }
