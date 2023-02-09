@@ -3,11 +3,14 @@ package com.tradingplatform.services
 import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
+import com.tradingplatform.dto.OrderResponse
+import com.tradingplatform.dto.SellOrderResponse
 import com.tradingplatform.exceptions.InvalidOrderException
 import com.tradingplatform.exceptions.UserNotFoundException
 import com.tradingplatform.model.*
 import com.tradingplatform.validations.OrderValidation
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.MutableHttpResponse
 
 class OrderService {
 
@@ -41,8 +44,8 @@ class OrderService {
         return completedOrdersOfUser
     }
 
-    fun placeOrder(userName: String, order: OrderRequest): Any {
-        if(UserRepository.getUser(userName) == null){
+    fun placeOrder(userName: String, order: OrderRequest): MutableHttpResponse<OrderResponse>? {
+        if (UserRepository.getUser(userName) == null) {
             throw UserNotFoundException(listOf("User doesn't exist"))
         }
         val errorList = arrayListOf<String>()
@@ -74,7 +77,20 @@ class OrderService {
             throw InvalidOrderException(errorList)
         }
 
-        return HttpResponse.ok(mapOf("orderId" to newOrder!!.id.first, "quantity" to quantity, "type" to type, "price" to price))
+        val response: OrderResponse =
+            if (type == "SELL") SellOrderResponse(
+                type = type,
+                price = price,
+                quantity = quantity,
+                esopType = order.esopType!!
+            ) else OrderResponse(
+                type = type,
+                price = price,
+                quantity = quantity
+            )
+        return HttpResponse.ok(
+            response
+        )
     }
 
     private fun updateWalletAndInventoryForBuyOrder(user: User, order: OrderRequest) {
@@ -112,7 +128,7 @@ class OrderService {
             }
         }
 
-        if(errorList.isNotEmpty()){
+        if (errorList.isNotEmpty()) {
             throw InvalidOrderException(errorList)
         }
     }

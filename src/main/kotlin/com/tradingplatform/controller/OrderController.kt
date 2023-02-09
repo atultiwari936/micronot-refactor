@@ -2,6 +2,7 @@ package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepository
 import com.tradingplatform.dto.OrderRequest
+import com.tradingplatform.dto.OrderResponse
 import com.tradingplatform.exceptions.InvalidOrderException
 import com.tradingplatform.exceptions.UserNotFoundException
 import com.tradingplatform.model.Order
@@ -55,7 +56,7 @@ class OrderController {
     }
 
     @Post(value = "/{userName}/order")
-    fun createOrder(@Body @Valid order: OrderRequest, @QueryValue userName: String): Any {
+    fun createOrder(@Body @Valid order: OrderRequest, @QueryValue userName: String): MutableHttpResponse<OrderResponse>? {
         OrderValidation.validateOrder(order)
         return orderService.placeOrder(userName, order)
     }
