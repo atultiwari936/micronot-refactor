@@ -13,12 +13,19 @@ class OrderValidation {
         fun validateOrder(order: OrderRequest) {
             val errorList = arrayListOf<String>()
 
+            checkIfOrderTypeIsValid(order.type!!)?.let{ errorList.add(it)}
             isQuantityWithinLimit(order.quantity!!)?.let { errorList.add(it) }
             isPriceWithinLimit(order.price!!)?.let { errorList.add(it) }
             isEsopTypeValid(order.esopType!!)?.let { errorList.add(it) }
             if (errorList.isNotEmpty()) {
                 throw InvalidOrderException(errorList)
             }
+        }
+
+        private fun checkIfOrderTypeIsValid(type: String): String? {
+            if (type != "BUY" && type != "SELL")
+                return "Order type can only be BUY or SELL"
+            return null
         }
 
         private fun isQuantityWithinLimit(quantity: Int): String? {
@@ -88,7 +95,7 @@ class OrderValidation {
 
     fun isSufficientNonPerformanceEsopsQuantity(errorList: ArrayList<String>, user: User, quantity: Int) {
         if (quantity > user.inventory.getNormalFreeQuantity()) {
-            errorList.add("Insufficient Performance ESOPs in inventory")
+            errorList.add("Insufficient Normal ESOPs in inventory")
         }
     }
 }
