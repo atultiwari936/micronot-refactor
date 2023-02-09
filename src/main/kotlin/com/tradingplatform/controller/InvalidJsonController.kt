@@ -18,15 +18,4 @@ class InvalidJsonController {
         return HttpResponse.badRequest<JsonError>()
             .body(response)
     }
-
-    @Error(global = true) //
-    fun emptyJsonerror(request: HttpRequest<*>, e: Throwable): Any {
-        val response = mutableMapOf<String, MutableList<String>>()
-        response.put("error", mutableListOf(e.message!!))
-
-
-        return HttpResponse.badRequest<JsonError>()
-            .body(response)
-    }
-
 }
