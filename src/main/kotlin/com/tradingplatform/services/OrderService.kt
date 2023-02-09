@@ -143,22 +143,21 @@ class OrderService {
     }
 
     fun updateTransactionsOfOrder(allOrdersOfUser: MutableList<Order>) {
-        for (individualOrder in allOrdersOfUser) {
+        for (order in allOrdersOfUser) {
+            val orderTransactions = order.filled
+            val quantitiesAtSamePrice: MutableMap<Int, Int> = mutableMapOf()
 
-            val transOfIndividualOrder = individualOrder.filled
-
-            val transAtSamePrice: ArrayList<PriceQuantityPair> = arrayListOf()
-            val transIndexAtPrice: MutableMap<Int, Int> = mutableMapOf()
-
-            for (transPriceAndQty in transOfIndividualOrder) {
-                if (transIndexAtPrice.contains(transPriceAndQty.price)) {
-                    transAtSamePrice[transIndexAtPrice[transPriceAndQty.price]!!].quantity += transPriceAndQty.quantity
+            for (transaction in orderTransactions) {
+                if (quantitiesAtSamePrice.contains(transaction.price)) {
+                    quantitiesAtSamePrice[transaction.price] =
+                        quantitiesAtSamePrice[transaction.price]!! + transaction.quantity
                 } else {
-                    transAtSamePrice.add(transPriceAndQty)
-                    transIndexAtPrice[transPriceAndQty.price] = transAtSamePrice.size - 1
+                    quantitiesAtSamePrice[transaction.price] = transaction.quantity
                 }
             }
-            individualOrder.filled = transAtSamePrice
+
+            order.filled = quantitiesAtSamePrice.map { (price, quantity) -> PriceQuantityPair(price, quantity) } as ArrayList<PriceQuantityPair>
+
         }
     }
 }
