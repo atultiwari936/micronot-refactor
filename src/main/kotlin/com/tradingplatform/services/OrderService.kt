@@ -53,7 +53,7 @@ class OrderService {
         val quantity = order.quantity!!
         val price = order.price!!
         val type = order.type!!
-        var newOrder: Order? = null
+        var newOrder: Order?
 
         if (type == "BUY") {
             errorList.addAll(OrderValidation.validateBuyOrder(order, user))
@@ -77,9 +77,6 @@ class OrderService {
         if (errorList.isNotEmpty()) {
             throw InvalidOrderException(errorList)
         }
-
-
-        println(order.esopType)
 
         val response: OrderResponse =
             if (type == "SELL") SellOrderResponse(
