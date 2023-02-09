@@ -1,13 +1,22 @@
 package com.tradingplatform.services
 
 import com.tradingplatform.data.OrderRepository
+import com.tradingplatform.data.UserRepository
 import com.tradingplatform.model.Order
 import com.tradingplatform.model.User
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class OrderHistoryServiceTest {
 
+    @BeforeEach
+    fun setUp(){
+        OrderRepository.getSellOrders().clear()
+        OrderRepository.getCompletedOrders().clear()
+        OrderRepository.getBuyOrders().clear()
+        UserRepository.users.clear()
+    }
     val user = User(firstName = "John", lastName = "Doe", userName = "john",
         phoneNumber = "+917878787878", email = "john@gmail.com"
     )
