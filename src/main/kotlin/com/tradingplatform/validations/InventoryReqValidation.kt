@@ -25,8 +25,8 @@ class InventoryReqValidation {
         }
 
         fun isAmountWithinLimit(quantity: Int): String? {
-            if (quantity <= 0 || quantity > maxLimitForInventory)
-                return "Quantity is not valid. Range between 1 and $maxLimitForInventory"
+            if (quantity <= 0 || quantity > PlatformData.MAX_INVENTORY_LIMIT)
+                return "Quantity is not valid. Range between 1 and $PlatformData.MAX_INVENTORY_LIMIT"
             return null
         }
 

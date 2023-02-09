@@ -1,5 +1,6 @@
 package com.tradingplatform.model
 
-class ESOPType(var free: Int, var locked: Int) {
-
+enum class ESOPType(val sortOrder: Int) {
+    PERFORMANCE(1),
+    NORMAL(0);
 }

@@ -1,7 +1,9 @@
 package com.tradingplatform.model
 
 class Wallet(private var free: Int, private var locked: Int, var credit: Int) {
-    val MAX_WALLET_LIMIT = 10000000
+    companion object {
+        const val MAX_WALLET_LIMIT = 10000000
+    }
 
     fun getFreeAmount(): Int {
         return free
@@ -15,6 +17,10 @@ class Wallet(private var free: Int, private var locked: Int, var credit: Int) {
 
     fun addAmountToFree(amount: Int) {
         free += amount
+    }
+
+    fun addCredits(amount: Int){
+        credit += amount
     }
 
     fun removeAmountFromFree(amount: Int) {

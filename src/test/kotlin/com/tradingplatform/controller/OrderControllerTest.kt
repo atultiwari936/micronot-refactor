@@ -2,7 +2,6 @@ package com.tradingplatform.controller
 
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
-import com.tradingplatform.validations.maxLimitForInventory
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.restassured.specification.RequestSpecification
 import org.hamcrest.Matchers
@@ -260,7 +259,7 @@ class OrderControllerTest {
             .post("/user/${user.userName}/order")
             .then()
             .statusCode(400).and()
-            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and $maxLimitForInventory"))
+            .body("error", Matchers.contains("Quantity is not valid. Range between 1 and ${PlatformData.MAX_INVENTORY_LIMIT}"))
     }
 
     @Test
