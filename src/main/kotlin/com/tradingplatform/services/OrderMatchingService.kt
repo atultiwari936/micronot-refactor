@@ -66,7 +66,7 @@ class OrderMatchingService {
             OrderRepository.addCompletedOrder(order)
         } else {
             if (order.filledQuantity in 1 until order.quantity) order.status = "partially filled"
-            OrderRepository.addBuyerOrder(order)
+            OrderRepository.addBuyOrder(order)
         }
     }
 
@@ -75,7 +75,7 @@ class OrderMatchingService {
         while (OrderRepository.checkIfBuyOrdersExists()) {
             val potentialBuyOrder = OrderRepository.getBuyOrders().poll()
             if (potentialBuyOrder.price < order.price || order.filledQuantity == order.quantity) {
-                OrderRepository.addBuyerOrder(potentialBuyOrder)
+                OrderRepository.addBuyOrder(potentialBuyOrder)
                 break
             } else {
                 val potentialBuyOrderQty = min(
@@ -111,7 +111,7 @@ class OrderMatchingService {
                 potentialBuyOrder.user.inventory.addNormalESOPToFree(potentialBuyOrderQty)
                 if (potentialBuyOrder.filledQuantity < potentialBuyOrder.quantity && potentialBuyOrder.filledQuantity > 0) potentialBuyOrder.status =
                     "partially filled"
-                OrderRepository.addBuyerOrder(potentialBuyOrder)
+                OrderRepository.addBuyOrder(potentialBuyOrder)
                 if (potentialBuyOrder.filledQuantity == potentialBuyOrder.quantity) {
                     potentialBuyOrder.status = "filled"
                     OrderRepository.removeBuyOrder(potentialBuyOrder)
