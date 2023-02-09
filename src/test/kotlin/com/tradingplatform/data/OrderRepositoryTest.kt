@@ -4,10 +4,18 @@ import com.tradingplatform.model.ESOPType
 import com.tradingplatform.model.Order
 import com.tradingplatform.model.User
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class OrderRepositoryTest {
+    @BeforeEach
+    fun setUp() {
+        OrderRepository.getBuyOrders().clear()
+        OrderRepository.getSellOrders().clear()
+        OrderRepository.getCompletedOrders().clear()
+    }
+
     val buyUser = User(
         firstName = "John", lastName = "Doe", userName = "john", email = "john@gmail.com",
         phoneNumber = "+911234567890"
@@ -65,20 +73,10 @@ class OrderRepositoryTest {
     }
 
     @Test
-    fun `it should raise exception if sell order is added to buyOrder queue`() {
-        val buyOrder =
-            Order(type = "SELL", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.sortOrder)
+    fun `it should raise exception if order other than BUY or SELL are added`() {
+        val order =
+            Order(type = "PURCHASE", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.sortOrder)
 
-        assertThrows<Exception> { OrderRepository.addBuyOrder(buyOrder) }
-
-    }
-
-    @Test
-    fun `it should raise exception if buy order is added to sellOrder queue`() {
-        val sellOrder =
-            Order(type = "BUY", quantity = 10, price = 10, user = sellUser, esopType = ESOPType.NORMAL.sortOrder)
-
-        assertThrows<Exception> { OrderRepository.addSellOrder(sellOrder) }
-
+        assertThrows<Exception> { OrderRepository.addOrder(order) }
     }
 }
