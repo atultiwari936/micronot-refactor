@@ -74,7 +74,7 @@ class OrderMatchingService {
         buyer.inventory.removeESOPFromCredit(quantity)
 
 
-        if (sellOrder.esopType == "PERFORMANCE") {
+        if (sellOrder.id.second == 1) {
             seller.wallet.addAmountToFree(quantity * sellOrder.price)
             seller.inventory.removePerformanceESOPFromLocked(quantity)
         } else {

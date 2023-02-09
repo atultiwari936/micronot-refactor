@@ -9,7 +9,7 @@ object OrderHistoryService {
 
     fun getAllOrders(user: User): MutableList<Order> {
         val allOrdersOfUser: MutableList<Order> = mutableListOf()
-        val userOrderIds = user.orderIds
+        val userOrderIds = user.orders
 
         allOrdersOfUser.addAll(orderService.getAllCompletedOrdersOfUser(userOrderIds))
         allOrdersOfUser.addAll(orderService.getAllPendingOrdersOfUser(user.userName))
