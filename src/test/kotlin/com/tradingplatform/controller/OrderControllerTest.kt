@@ -1,5 +1,6 @@
 package com.tradingplatform.controller
 
+import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.model.*
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -13,9 +14,9 @@ class OrderControllerTest {
 
     @BeforeEach
     fun `Remove all the Users and Orders`() {
-        CompletedOrders.clear()
-        BuyOrders.clear()
-        SellOrders.clear()
+        OrderRepository.getCompletedOrders().clear()
+        OrderRepository.getBuyOrders().clear()
+        OrderRepository.getSellOrders().clear()
         UserRepo.users.clear()
     }
 
