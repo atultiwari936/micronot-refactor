@@ -9,10 +9,10 @@ import com.tradingplatform.model.Order
 import com.tradingplatform.model.User
 import com.tradingplatform.services.OrderService
 import com.tradingplatform.validations.OrderValidation
+import io.micronaut.core.convert.exceptions.ConversionErrorException
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.*
-import io.micronaut.http.annotation.Error
 import io.micronaut.validation.Validated
 import javax.validation.ConstraintViolationException
 import javax.validation.Valid
@@ -25,6 +25,11 @@ class OrderController {
     @Error(exception = ConstraintViolationException::class)
     fun handleTypeNotPresent(exception: ConstraintViolationException): MutableHttpResponse<Map<String, List<String>>>? {
         return HttpResponse.badRequest(mapOf("errors" to exception.constraintViolations.map { it.message }))
+    }
+
+    @Error(exception = ConversionErrorException::class)
+    fun handleConversionError(exception: ConversionErrorException): MutableHttpResponse<Map<String, String>>? {
+        return HttpResponse.badRequest(mapOf("errors" to "Invalid data types provided"))
     }
 
     @Error(exception = InvalidOrderException::class)
