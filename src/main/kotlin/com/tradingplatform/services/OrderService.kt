@@ -1,5 +1,6 @@
 package com.tradingplatform.services
 
+import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.dto.OrderRequest
 import com.tradingplatform.model.*
@@ -11,12 +12,12 @@ class OrderService {
     private val orderMatchingService: OrderMatchingService = OrderMatchingService()
     fun getAllPendingOrdersOfUser(userName: String): MutableList<Order> {
         val pendingOrdersOfUser: MutableList<Order> = mutableListOf()
-        for (order in SellOrders) {
+        for (order in OrderRepository.getSellOrders()) {
             if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
         }
-        for (order in BuyOrders) {
+        for (order in OrderRepository.getBuyOrders()) {
             if (userName == order.user.userName) {
                 pendingOrdersOfUser.add(order)
             }
@@ -28,8 +29,8 @@ class OrderService {
 
         val completedOrdersOfUser: MutableList<Order> = mutableListOf()
         for (orderId in userOrderIds) {
-            if (CompletedOrders.containsKey(orderId)) {
-                val currOrder = CompletedOrders[orderId]
+            if (OrderRepository.getCompletedOrders().containsKey(orderId)) {
+                val currOrder = OrderRepository.getCompletedOrderById(orderId)
                 if (currOrder != null) {
                     completedOrdersOfUser.add(currOrder)
                 }
