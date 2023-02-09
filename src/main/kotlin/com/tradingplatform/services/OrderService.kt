@@ -67,6 +67,7 @@ class OrderService {
         } else if (type == "SELL") {
             updateWalletAndInventoryForSellOrder(user, order)
 
+
             newOrder = Order("SELL", quantity, price, user, ESOPType.valueOf(order.esopType!!).sortOrder)
             user.orders.add(newOrder.id)
 
@@ -76,6 +77,9 @@ class OrderService {
         if (errorList.isNotEmpty()) {
             throw InvalidOrderException(errorList)
         }
+
+
+        println(order.esopType)
 
         val response: OrderResponse =
             if (type == "SELL") SellOrderResponse(
