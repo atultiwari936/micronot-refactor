@@ -1,16 +1,15 @@
-package com.tradingplatform
+package com.tradingplatform.services
 
 import com.tradingplatform.data.OrderRepository
 import com.tradingplatform.data.UserRepo
 import com.tradingplatform.dto.OrderRequest
 
 import com.tradingplatform.model.User
-import com.tradingplatform.services.OrderService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class OrderMatchingTest {
+class OrderMatchingServiceTest {
 
     @BeforeEach
     fun `Remove all the Users and Orders`() {
